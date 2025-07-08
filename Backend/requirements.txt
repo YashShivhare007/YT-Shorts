@@ -2,7 +2,7 @@ Flask==3.0.0
 gunicorn==21.2.0
 google-auth-oauthlib==1.2.0
 google-api-python-client==2.110.0
-yt-dlp==2024.1.7
+yt-dlp>=2024.12.13
 assemblyai==0.21.0
 python-dotenv==1.0.0
 urllib3==2.1.0
