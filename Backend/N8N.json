@@ -1,0 +1,2918 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// This Function node expects each item.json to have the raw structure from your HTTP transcript API.\n// For each item, we extract VideoId, parse transcript blocks, and produce segments + full text.\n\nreturn items.map(item => {\n  const rawData = item.json;\n  \n  // 1. VideoId: adjust according to how your rawData provides it. \n  //    Often it's rawData.id or rawData.VideoId. Here we use rawData.id:\n  const VideoId = rawData.id || rawData.VideoId || null;\n  \n  // 2. Extract the transcript blocks array:\n  //    rawData.tracks is an array; we take the first track with transcript if present\n  let transcriptBlocks = [];\n  if (Array.isArray(rawData.tracks) && rawData.tracks.length > 0) {\n    // find a track with a transcript array\n    const track = rawData.tracks.find(t => Array.isArray(t.transcript));\n    if (track) {\n      transcriptBlocks = track.transcript;\n    }\n  }\n  \n  // 3. Build transcriptSegments: parse start/dur as numbers\n  const transcriptSegments = transcriptBlocks.map(block => {\n    // parseFloat may yield NaN if block.start/dur missing; you can default to 0 in that case\n    const startNum = parseFloat(block.start);\n    const durNum = parseFloat(block.dur);\n    return {\n      start: isNaN(startNum) ? 0 : startNum,\n      dur: isNaN(durNum) ? 0 : durNum,\n      text: block.text || \"\"\n    };\n  });\n\n  // 4. Build a single concatenated transcriptText, e.g. \"[0.12] text\"\n  const transcriptText = transcriptSegments\n    .map(seg => {\n      // format start to two decimals\n      const t = (typeof seg.start === \"number\") ? seg.start.toFixed(2) : \"0.00\";\n      return `[${t}] ${seg.text}`;\n    })\n    .join(\"\\n\");\n\n  // 5. createdAt timestamp\n  const createdAt = new Date().toISOString();\n\n  // 6. Return one output item per input item, containing all fields for MongoDB\n  return {\n    json: {\n      VideoId,\n      transcriptText,\n      transcriptSegments,\n      createdAt\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -60,
+        760
+      ],
+      "id": "c8cabb21-a5cb-4600-891c-7f64933e33d6",
+      "name": "Parse Transcript"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "transcripts",
+        "fields": "=VideoId,createdAt,transcriptText,transcriptSegments",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        340,
+        840
+      ],
+      "id": "2ed2ff23-3100-4f09-8749-bf64b4f89b33",
+      "name": "Store in MongoDB",
+      "credentials": {
+        "mongoDb": {
+          "id": "ktCidLc7iOWSZBr6",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const mongoId = $json[\"_id\"]; // MongoDB ID\nconst n8nDomain = \"https://godfather2002.app.n8n.cloud\"; // Replace with your n8n URL\nconst link = `${n8nDomain}/webhook/getTranscript?id=${mongoId}`;\n\n// Google Sheets formula to make it clickable:\nconst sheetFormula = `=HYPERLINK(\"${link}\", \"View Transcript\")`;\n\nreturn [{\n  json: {\n    transcriptLink: sheetFormula\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -920,
+        340
+      ],
+      "id": "72fbefa4-c9eb-4ad1-90fb-9943195fe6cf",
+      "name": "Build Sheet Link"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"trendingTopics\": [\"<List of high-level content trends (e.g., sarcastic comebacks, topper stories)>\"],\n  \"popularKeywords\": [\"<List of high-performing hashtags/keywords used in viral Shorts>\"],\n  \"contentIdeas\": [\n    {\n      \"title\": \"<Shorts-style video title>\",\n      \"theme\": \"<Category label such as Sarcastic Line, Moral Boost, Shayari, etc.>\",\n      \"reason\": \"<Why this works: e.g., hooks student emotion, fits last-minute prep anxiety>\"\n    }\n  ],\n  \"engagementPatterns\": {\n    \"storytelling\": true,\n    \"callToChat\": true,\n    \"lyrical/musicalEdits\": true,\n    \"emotionalAppeal\": true\n  },\n  \"channelObservations\": {\n    \"PW_Alpha\": \"<Pattern observed (e.g., emotional stories are popular)>\",\n    \"PW_NEET_Squad\": \"<Pattern observed>\"\n  }\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        -20
+      ],
+      "id": "22e4e648-f62d-48cb-b209-fb66475c736b",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are an experienced content strategist specializing in viral short-form video content for the Indian EdTech market (especially JEE/NEET exam prep). Analyze the latest YouTube Shorts and Instagram Reels from EdTech creators (like Physics Wallah and similar channels) and related student communities. Focus on what makes videos go viral – trending hooks, emotional tone, catchy formats – even if the content isn’t strictly educational. Prioritize content that resonates with Indian students (primarily Hindi-speaking) and captures attention (funny teacher skits, motivational clips, exam humor, inspirational stories, etc.). Consider both YouTube Shorts and Instagram Reels, including any viral memes or audio trends these creators use. Output your findings in the following JSON format (ensure the insights are relevant to the current    \n{{ new Date().toISOString() }} (latest trends) ):\n\nBe thorough: list viral topics/themes, popular hashtags, creative video ideas (with titles and why they work), and note any common engagement patterns. Highlight what hooks students emotionally or humorously. Your analysis should reflect current viral trends in the Indian EdTech shorts ecosystem.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -540,
+        100
+      ],
+      "id": "dd7b4199-59ce-45c3-9b7f-8063613118c8",
+      "name": "Trend Analyser"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -220,
+        100
+      ],
+      "id": "b23ca440-f8a4-4d43-bda8-01e0a403c300",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input data\nconst input = $json[\"transcriptText\"];\nconst VideoId = $json[\"VideoId\"];\n\n// Regex to match [timestamp] and split accordingly\nconst regex = /\\[(\\d+\\.\\d+)\\](.*?)(?=\\[\\d+\\.\\d+\\]|$)/gs;\n\nlet matches;\nlet formatted = \"\";\n\nlet prevTime = null;\nlet prevText = \"\";\n\nwhile ((matches = regex.exec(input)) !== null) {\n  const time = parseFloat(matches[1]).toFixed(2);\n  const text = matches[2].trim().replace(/\\n/g, \" \");\n\n  if (prevTime !== null) {\n    formatted += `${prevTime} - ${time}: ${prevText}\\n`;\n  }\n\n  prevTime = time;\n  prevText = text;\n}\n\n// Add the last entry (if any)\nif (prevTime && prevText) {\n  formatted += `${prevTime} - END: ${prevText}`;\n}\n\n// Output the result with VideoId included\nreturn [\n  {\n    VideoId: VideoId,\n    TransText: formatted,\n  },\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        320
+      ],
+      "id": "a88f12de-d8d3-4aaa-9285-3e4f120531f6",
+      "name": "start,end,text"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      transcriptText: item.json.transcriptText,\n      VideoId: item.json.VideoId\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -540,
+        320
+      ],
+      "id": "4f187d67-ff79-4c8a-bad4-7c5894c3eea4",
+      "name": "preprocessing transcript"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract data from the merge node output\nconst mergedData = $input.all();\n\n// Find the trend analysis and transcript data\nlet trendAnalysis = null;\nlet transcript = null;\n\n// Loop through merged data to extract both pieces\nfor (const item of mergedData) {\n  if (item.json.output) {\n    trendAnalysis = item.json.output;\n  }\n  if (item.json.TransText) {\n    transcript = item.json.TransText;\n  }\n}\n\n// Validate that we have both pieces of data\nif (!trendAnalysis) {\n  throw new Error(\"Trend analysis data not found in merge output\");\n}\n\nif (!transcript) {\n  throw new Error(\"Transcript data not found in merge output\");\n}\n\n// Convert transcript text to the expected format for the LLM\n// The transcript is currently in \"start - end: text\" format\n// We need to convert it to a more structured format that the LLM can easily parse\n\nconst transcriptLines = transcript.split('\\n').filter(line => line.trim() !== '');\nconst structuredTranscript = transcriptLines.map(line => {\n  const match = line.match(/^(\\d+\\.\\d+)\\s*-\\s*(\\d+\\.\\d+):\\s*(.+)$/);\n  if (match) {\n    return {\n      start: parseFloat(match[1]),\n      end: parseFloat(match[2]),\n      text: match[3].trim()\n    };\n  }\n  return null;\n}).filter(item => item !== null);\n\n// Prepare the final output for the LLM\nreturn [{\n  json: {\n    // Formatted transcript as JSON string for the LLM\n    formattedTranscript: JSON.stringify(structuredTranscript, null, 2),\n    \n    // Formatted trend analysis as JSON string for the LLM\n    formattedTrends: JSON.stringify(trendAnalysis, null, 2),\n    \n    // Keep raw data for debugging if needed\n    rawTranscript: transcript,\n    rawTrends: trendAnalysis,\n    \n    // Also provide the structured transcript as object for potential other uses\n    structuredTranscript: structuredTranscript,\n    trendAnalysis: trendAnalysis\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        100
+      ],
+      "id": "f623e843-86bc-4e93-87f9-8870ff649584",
+      "name": "Code"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -220,
+        320
+      ],
+      "id": "069f6f2a-922b-4f6d-a65f-98f8e01e320b",
+      "name": "Raw plus clipped"
+    },
+    {
+      "parameters": {
+        "jsCode": "// FIXED VERSION - Expand Context Node\n// --- Configuration ---\nconst PRE_CONTEXT_SEGMENTS = 6;\nconst POST_CONTEXT_SEGMENTS = 6;\n\n// --- Enhanced Helper Functions ---\nfunction timeToSeconds(timeStr) {\n  if (!timeStr) return 0;\n  \n  // Handle different input types\n  if (typeof timeStr === 'number') return timeStr;\n  if (typeof timeStr !== 'string') return 0;\n  \n  // Clean the string\n  timeStr = timeStr.trim();\n  \n  // Handle MM:SS or HH:MM:SS format\n  const parts = timeStr.split(':').map(Number);\n  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {\n    return parts[0] * 60 + parts[1]; // MM:SS\n  }\n  if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {\n    return parts[0] * 3600 + parts[1] * 60 + parts[2]; // HH:MM:SS\n  }\n  \n  // Handle decimal seconds format\n  const floatVal = parseFloat(timeStr);\n  if (!isNaN(floatVal)) return floatVal;\n  \n  console.warn(`⚠️ Could not parse time: \"${timeStr}\"`);\n  return 0;\n}\n\nfunction parseTransText(transText) {\n  if (!transText) return [];\n  const lines = transText.split('\\n');\n  const segments = [];\n\n  for (const line of lines) {\n    const match = line.match(/^(\\d+:\\d+|\\d+\\.\\d+)\\s*-\\s*(\\d+:\\d+|\\d+\\.\\d+|END):\\s*(.*)$/);\n    if (match) {\n      const start = timeToSeconds(match[1]);\n      const text = match[3].trim();\n      segments.push({ start, text });\n    }\n  }\n  return segments;\n}\n\n// Enhanced findBestMatch function\nfunction findBestSegmentMatch(targetTime, segments, tolerance = 5.0) {\n  let bestMatch = -1;\n  let smallestDiff = Infinity;\n  \n  for (let i = 0; i < segments.length; i++) {\n    const diff = Math.abs(segments[i].start - targetTime);\n    if (diff < smallestDiff) {\n      smallestDiff = diff;\n      bestMatch = i;\n    }\n  }\n  \n  // Return match only if within tolerance\n  if (smallestDiff <= tolerance) {\n    return bestMatch;\n  }\n  \n  return -1;\n}\n\n// --- Main Logic ---\nconst inputData = $input.all();\nconst aiClipData = inputData.find(item => item.json.output)?.json;\nconst fullTranscriptData = inputData.find(item => item.json.TransText)?.json;\nconst VideoId = fullTranscriptData?.VideoId || inputData.find(item => item.json.VideoId)?.json?.VideoId;\n\nif (!aiClipData || !fullTranscriptData) {\n  throw new Error(\"Could not find AI clips or full transcript in the input data.\");\n}\n\nconst aiClips = aiClipData.output;\nconst fullTranscript = parseTransText(fullTranscriptData.TransText);\n\nconsole.log(`📊 Processing ${aiClips.length} AI clips against ${fullTranscript.length} transcript segments`);\n\nconst clipsToReview = [];\nconst skippedClips = [];\n\nfor (let i = 0; i < aiClips.length; i++) {\n  const clip = aiClips[i];\n  \n  try {\n    const clipStartSeconds = timeToSeconds(clip.start);\n    const clipEndSeconds = timeToSeconds(clip.end);\n    \n    console.log(`🎬 Processing clip ${i+1}: ${clipStartSeconds}s - ${clipEndSeconds}s`);\n\n    // Use enhanced matching with tolerance\n    const startIndex = findBestSegmentMatch(clipStartSeconds, fullTranscript);\n    \n    if (startIndex === -1) {\n      console.warn(`⚠️ CLIP SKIPPED: Could not find start segment for clip ${i+1} at ${clipStartSeconds}s`);\n      skippedClips.push({\n        clipIndex: i,\n        reason: `No transcript segment found near ${clipStartSeconds}s`,\n        originalClip: clip\n      });\n      continue;\n    }\n\n    // Find end segment with enhanced matching\n    let endIndex = findBestSegmentMatch(clipEndSeconds, fullTranscript);\n    if (endIndex === -1) {\n      // If no exact match, find the last segment before the end time\n      endIndex = fullTranscript.length - 1;\n      for (let j = fullTranscript.length - 1; j >= 0; j--) {\n        if (fullTranscript[j].start <= clipEndSeconds) {\n          endIndex = j;\n          break;\n        }\n      }\n    }\n\n    // Ensure end is after start\n    if (endIndex < startIndex) {\n      endIndex = Math.min(startIndex + 2, fullTranscript.length - 1);\n    }\n\n    // Context window\n    const expandedStartIndex = Math.max(0, startIndex - PRE_CONTEXT_SEGMENTS);\n    const expandedEndIndex = Math.min(fullTranscript.length - 1, endIndex + POST_CONTEXT_SEGMENTS);\n\n    const expandedSegments = fullTranscript.slice(expandedStartIndex, expandedEndIndex + 1);\n\n    clipsToReview.push({\n      original_reason: clip.reason,\n      original_category: clip.category,\n      confidence: clip.confidence,\n      clipIndex: i, // Add for tracking\n      segments_for_editing: expandedSegments.map(seg => ({\n        start: seg.start,\n        text: seg.text\n      })),\n      expanded_transcript_text: expandedSegments\n        .map(seg => `[${seg.start.toFixed(2)}] ${seg.text}`)\n        .join('\\n')\n    });\n    \n    console.log(`✅ Clip ${i+1} processed successfully`);\n    \n  } catch (error) {\n    console.error(`❌ Error processing clip ${i+1}:`, error);\n    skippedClips.push({\n      clipIndex: i,\n      reason: `Processing error: ${error.message}`,\n      originalClip: clip\n    });\n  }\n}\n\n// Log summary\nconsole.log(`📊 SUMMARY: ${clipsToReview.length} clips processed, ${skippedClips.length} clips skipped`);\nif (skippedClips.length > 0) {\n  console.warn(`⚠️ SKIPPED CLIPS:`, skippedClips);\n}\n\n// Return result with metadata\nreturn [\n  {\n    json: {\n      VideoId: VideoId,\n      clips_for_ai_editor: clipsToReview,\n      processing_summary: {\n        total_input_clips: aiClips.length,\n        processed_clips: clipsToReview.length,\n        skipped_clips: skippedClips.length,\n        skipped_details: skippedClips\n      }\n    }\n  }\n]; "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        320
+      ],
+      "id": "764faadd-9104-4d0b-b388-7e7440dce4b9",
+      "name": "Expand Context"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nreturn {\n  json:{\n    IDDDDD: $input.first().json.VideoId}\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -540,
+        580
+      ],
+      "id": "bf0377b7-62e2-4eab-b6be-527482eb03e4",
+      "name": "Extracting Link Id",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -80,
+        580
+      ],
+      "id": "c677cc13-2b18-4753-bb3a-cc2635d477f5",
+      "name": "Final Output with VideoId"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Find the array of edited clips from the input\nconst clipsItem = items.find(item => Array.isArray(item.json.output));\nconst clips = clipsItem ? clipsItem.json.output : [];\n\n// Find the video ID from the input (handles both 'IDDDDD' and 'VideoId' keys)\nconst videoIdItem = items.find(item => item.json.IDDDDD || item.json.VideoId);\nconst VideoId = videoIdItem ? (videoIdItem.json.IDDDDD || videoIdItem.json.VideoId) : '';\n\n// Return a single object with output (array of clips) and VideoId\nreturn [\n  {\n    json: {\n      output: clips,\n      VideoId: VideoId\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        580
+      ],
+      "id": "00a3c95a-628a-47c6-ac3c-3d59f47e3a1d",
+      "name": "Setting up Payload"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1160,
+        1140
+      ],
+      "id": "acb8ae0d-2f07-443c-89cf-d06c417bdf57",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -260,
+        1120
+      ],
+      "id": "63259ea0-6b1b-4710-951a-98001ab1ca09",
+      "name": "Wait 30 Seconds",
+      "webhookId": "80a865ed-32c1-4012-b168-7119cc44182e"
+    },
+    {
+      "parameters": {
+        "url": "=https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/status/{{ $('If YT-2').item.json.VideoId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "ngrok-skip-browser-warning",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -120,
+        1120
+      ],
+      "id": "2e636cc7-dcb9-4488-bacb-0fb541bc394a",
+      "name": "Check Status",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "216a4b61-70a4-42e6-897e-6a121f95fab8",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "=completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        40,
+        1120
+      ],
+      "id": "eef1b76c-7e69-46ea-8d37-c4c95234fbd7",
+      "name": "Is Completed?"
+    },
+    {
+      "parameters": {
+        "jsCode": "    const items = $input.all();\n    // The VideoId comes from the 'Expand Context' node's input\n    const VideoId = items[0].json.VideoId; \n    const clips = items[0].json.clips_for_ai_editor;\n    const newRows = [];\n\n    for (let i = 0; i < clips.length; i++) {\n      const clip = clips[i];\n      newRows.push({\n        json: {\n          \"Clip ID\": `${VideoId}-${i}`, // Creates unique ID like \"46CaYBwEp_k-0\"\n          \"Category\": clip.original_category,\n          \"Reason\": clip.original_reason,\n          \"Confidence\": clip.confidence\n        }\n      });\n    }\n\n    return newRows;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        320
+      ],
+      "id": "47292c54-38ca-485a-abfc-e0a8c2f4a9e6",
+      "name": "Prepare Initial Clip Rows"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Extract clips and VideoId from correct items\nconst clipsItem = items.find(item => item.json.output);\nconst videoIdItem = items.find(item => item.json.IDDDDD);\n\nconst clips = clipsItem?.json?.output || [];\nconst VideoId = videoIdItem?.json?.IDDDDD || \"unknown\";\n\nconst updatedRows = [];\n\n// Helper: convert seconds to HH:MM:SS\nfunction formatTime(seconds) {\n  const h = Math.floor(seconds / 3600);\n  const m = Math.floor((seconds % 3600) / 60);\n  const s = Math.floor(seconds % 60);\n\n  const hh = h.toString().padStart(2, '0');\n  const mm = m.toString().padStart(2, '0');\n  const ss = s.toString().padStart(2, '0');\n\n  return `${hh}:${mm}:${ss}`;\n}\n\nfor (let i = 0; i < clips.length; i++) {\n  const clip = clips[i];\n  updatedRows.push({\n    json: {\n      \"Clip ID\": `${VideoId}-${i}`,\n      \"Start\": formatTime(clip.final_start_time),\n      \"End\": formatTime(clip.final_end_time),\n      \"Text\": clip.final_text,\n      \"Editor Justification\": clip.editor_justification\n    }\n  });\n}\n\nreturn updatedRows;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        580
+      ],
+      "id": "025e97b9-b1b0-462f-8e37-889c26edb33f",
+      "name": "Prepare Polished Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W_mu1gQVLpOmYbZPWk0gJ7x412Abgl3UAh1xuwHJGbE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Category": "={{ $json.Category }}",
+            "Reason": "={{ $json.Reason }}",
+            "Confidence": "={{ $json.Confidence }}",
+            "Clip ID": "={{ $json[\"Clip ID\"] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Video Link",
+              "displayName": "Video Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "VideoId",
+              "displayName": "VideoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Clip ID",
+              "displayName": "Clip ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Text ",
+              "displayName": "Text ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Editor Justification",
+              "displayName": "Editor Justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Drive Link",
+              "displayName": "Drive Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        200,
+        320
+      ],
+      "id": "440281de-5e9a-4630-8cc3-c2db21980c61",
+      "name": "Append Initial Clip Rows",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1rF2ovT4P4qkzjyH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Clip ID": "={{ $json[\"Clip ID\"] }}",
+            "Start": "={{ $json.Start }}",
+            "End": "={{ $json.End }}",
+            "Text ": "={{ $json.Text }}",
+            "Editor Justification": "={{ $json[\"Editor Justification\"] }}"
+          },
+          "matchingColumns": [
+            "Clip ID"
+          ],
+          "schema": [
+            {
+              "id": "Video Link",
+              "displayName": "Video Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "VideoId",
+              "displayName": "VideoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Clip ID",
+              "displayName": "Clip ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Text ",
+              "displayName": "Text ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Editor Justification",
+              "displayName": "Editor Justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Drive Link",
+              "displayName": "Drive Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        200,
+        580
+      ],
+      "id": "278fde13-60c4-4f5f-b889-44b39cb022b7",
+      "name": "Update with Polished Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1rF2ovT4P4qkzjyH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst resultData = items[0].json.result; // ✅ Access the correct nested object\n\nconst VideoId = resultData.VideoId;\nconst clips = resultData.results;\n\nconst finalRows = [];\n\nfor (const clip of clips) {\n  const clipIndex = clip.clip_number - 1;\n\n  finalRows.push({\n    json: {\n      \"Clip ID\": `${VideoId}-${clipIndex}`,\n      \"Drive Link\": clip.drive_link\n    }\n  });\n}\n\nreturn finalRows;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        1060
+      ],
+      "id": "838f4726-38a4-4953-95cc-83bf42e1ec37",
+      "name": "Prepare Final Drive Links"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: Two items - one with VideoId and VideoLink, another with \"output\" array.\n// Goal: Combine them into a single object with all three properties.\n\nconst videoInfo = items.find(item => item.json.VideoId && item.json.VideoLink)?.json;\nconst outputData = items.find(item => item.json.output)?.json.output;\n\nreturn [\n  {\n    json: {\n      VideoId: videoInfo.VideoId,\n      VideoLink: videoInfo.VideoLink,\n      output: outputData\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        1140
+      ],
+      "id": "5a69d0b4-59c0-4959-92e4-08cdbcdcdf73",
+      "name": "Single JSON2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W_mu1gQVLpOmYbZPWk0gJ7x412Abgl3UAh1xuwHJGbE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Analysis complete",
+            "VideoId": "={{ $('If YT-2').item.json.VideoId }}"
+          },
+          "matchingColumns": [
+            "VideoId"
+          ],
+          "schema": [
+            {
+              "id": "Video Link",
+              "displayName": "Video Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "VideoId",
+              "displayName": "VideoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Clip ID",
+              "displayName": "Clip ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Text ",
+              "displayName": "Text ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Editor Justification",
+              "displayName": "Editor Justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Drive Link",
+              "displayName": "Drive Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        180,
+        1200
+      ],
+      "id": "a1f89569-ddb1-4f78-ba9a-e9cba410d2ae",
+      "name": "Analaysis Complete",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1rF2ovT4P4qkzjyH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const url = $json[\"Video Link\"]; // matches your new header\n\nfunction extractYouTubeID(url) {\n  if (!url || typeof url !== 'string') return null;\n  \n  // Updated regex to include live streams and other formats\n  const regex = /(?:youtube\\.com\\/(?:watch\\?v=|shorts\\/|live\\/|embed\\/|v\\/)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})/;\n  const match = url.match(regex);\n  return match ? match[1] : null;\n}\n\nfunction extractDriveID(url) {\n  if (!url || typeof url !== 'string') return null;\n  \n  // Regex for Google Drive file IDs (28+ characters)\n  const regex = /(?:drive\\.google\\.com\\/(?:file\\/d\\/|uc\\?id=|open\\?id=)|docs\\.google\\.com\\/(?:file\\/d\\/|uc\\?id=)|drive\\.usercontent\\.google\\.com\\/download\\?id=|video\\.google\\.com\\/get_player\\?.*?docid=)([a-zA-Z0-9_-]{28,})/;\n  const match = url.match(regex);\n  return match ? match[1] : null;\n}\n\nfunction getLinkType(url) {\n  if (!url || typeof url !== 'string') return 'other';\n  \n  if (/^https?:\\/\\/(www\\.)?(youtube\\.com|youtu\\.be)\\//i.test(url)) {\n    return 'youtube';\n  } else if (/^https?:\\/\\/(drive\\.google\\.com|docs\\.google\\.com|drive\\.usercontent\\.google\\.com|video\\.google\\.com)\\//i.test(url)) {\n    return 'drive';\n  }\n  \n  return 'other';\n}\n\nconst linkType = getLinkType(url);\nconst VideoId = extractYouTubeID(url);\nconst driveId = extractDriveID(url);\n\nreturn {\n  json: {\n    VideoId: VideoId || driveId || null, // Returns YouTube ID or Drive ID\n    type: linkType,\n    VideoLink: $json[\"Video Link\"],\n    Transcript: $json[\"Transcript\"]\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        100
+      ],
+      "id": "28cbaf69-b40d-4d1e-9dfa-21888f45d971",
+      "name": "Extract ID"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -920,
+        100
+      ],
+      "id": "a22cf80c-3794-4b27-af6d-23a328b98bcd",
+      "name": "Wait",
+      "webhookId": "f678025a-d71b-4690-b577-6c81d69ab8ee"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/generate-transcript",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "ngrok-skip-browser-warning",
+              "value": "true"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "VideoId",
+              "value": "={{ $json.VideoId }}"
+            },
+            {
+              "name": "drive_url",
+              "value": "={{ $json[\"Video Link\"] }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 6000000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        920
+      ],
+      "id": "0480c5e6-82f8-4e0e-9ece-d62bcf741ed0",
+      "name": "Get Transcript(GDrive)"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -260,
+        920
+      ],
+      "id": "58c6bf91-688f-4907-87e0-c07a569b7bba",
+      "name": "Wait 30 Seconds1",
+      "webhookId": "80a865ed-32c1-4012-b168-7119cc44182e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "216a4b61-70a4-42e6-897e-6a121f95fab8",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "=completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        20,
+        920
+      ],
+      "id": "94b6d4f7-8a86-42a1-858f-a99885352b86",
+      "name": "Is Completed?1"
+    },
+    {
+      "parameters": {
+        "url": "=https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/status/{{ $('Get Transcript(GDrive)').item.json.VideoId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "ngrok-skip-browser-warning",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -120,
+        920
+      ],
+      "id": "53d4c971-6b7c-41da-b987-f91c5595c0b5",
+      "name": "Check Status1",
+      "alwaysOutputData": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.youtube-transcript.io/api/transcripts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic 6847ada93ab3ca952ebc07cd"
+            },
+            {
+              "name": "Content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"ids\": [\"{{ $json.VideoId }}\"]} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        760
+      ],
+      "id": "1f7ed08b-c321-428d-90df-6ac983291db5",
+      "name": "Get Transcript (YT)"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"final_start_time\": 224.28,\n    \"final_end_time\": 291.44,\n    \"final_text\": \"पता नहीं तो मैं बताता हूं शादी से पहले आप स्केलर थे क्योंकि आप किसी भी डायरेक्शन में भाग सकते थे समझ रहे हो बात को और अब आप वेक्टर हो कैसे क्योंकि आप किसी और डायरेक्शन में नहीं भाग सकते आपकी डायरेक्शन फिक्स हो गई ना अच्छा हां समझ गए क्या वेक्टर मतलब एक डायरेक्शन भागना भागना है एक ही तरफ देखना दूसरी तरफ देखे तो फिर जिंदा नहीं बचोगे है ना और स्केलर कौन से लोग होते हैं कहीं भी जा सकते हैं वो उनका कोई डायरेक्शन फिक्स नहीं है नहीं है तो ऐसे कुछ लोग के नाम बताइए पी डब्लू में जो वेक्टर है टीचर्स में टीचर्स में वेक्टर जो है पंकज सर है पंकज सर वेक्टर है और स्केलर बता दो स्केलर सर है सर कुछ फैकल्टी नीट में ही है जो जैसे कि बता दो कोई दिक्कत नहीं इसमें क्या है एक्टर स्केलर जो मतलब कहीं भी डायरेक्शन में जा सकते हैं अत सर है और जो दो दो मल्टीपल सब्जेक्ट पढ़ा सकते हैं अपने दीपक वशिष्ठ सर है जिनकी शादी नहीं हुई वो स्केलर है ना हा हा वो ज्यादातर विपिन सर भी स्लर है हा विपिन सर हैलर है चलिए बहुत बढ़िया बच्चे भी बता रहे थैंक यू सो मच सर\",\n    \"category\": \"Funny Story\",\n    \"confidence\": 0.98,\n    \"editor_justification\": \"Trimmed the clip to start with the direct question and end after the teacher-student banter, creating a complete and hilarious narrative arc.\"\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -260,
+        460
+      ],
+      "id": "28e8ac93-f44b-48cf-8e3f-f4354b0d608a",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -920,
+        1140
+      ],
+      "id": "74422853-8798-44c8-878e-1f05324791e4",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Extract type from the first item\nconst typeValue = items[0].json.Type;\n\n// Clone the second item and add type\nconst updatedSecondItem = {\n  ...items[1],\n  json: {\n    ...items[1].json,\n    type: typeValue\n  }\n};\n\n// Return only the modified second object\nreturn [updatedSecondItem];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        1140
+      ],
+      "id": "2b5a360f-0c75-41bd-934f-2f3efc78c4bf",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1160,
+        100
+      ],
+      "id": "de958b34-41e1-42c7-b9ff-649f483a3860",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/process-youtube",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "ngrok-skip-browser-warning",
+              "value": "true"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "VideoId",
+              "value": "={{ $json.VideoId }}"
+            },
+            {
+              "name": "youtube_url",
+              "value": "={{ $json.VideoLink }}"
+            },
+            {
+              "name": "clips",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 6000000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        1060
+      ],
+      "id": "dac88a67-3fbf-4b0c-9e53-b6b4db18d2fa",
+      "name": "Start Processing(YT))"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/process-drive-clips",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "ngrok-skip-browser-warning",
+              "value": "true"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "VideoId",
+              "value": "={{ $json.VideoId }}"
+            },
+            {
+              "name": "drive_url",
+              "value": "={{ $json.VideoLink }}"
+            },
+            {
+              "name": "clips",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "timeout": 6000000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        1200
+      ],
+      "id": "872f0402-546c-45f9-8a03-42d550f2fe90",
+      "name": "Start Processing(GDrive)"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4.1",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -540,
+        -20
+      ],
+      "id": "7fd8afb9-66e8-4e05-ab18-aa8b06e0b69b",
+      "name": "Agent-1",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "LfKAswmZa0IoGC5f",
+          "name": "GPT-4.1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4.1",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        80,
+        -20
+      ],
+      "id": "94b13d22-e688-465f-9f31-fdb026de2718",
+      "name": "Agent-2",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "LfKAswmZa0IoGC5f",
+          "name": "GPT-4.1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4.1",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        460
+      ],
+      "id": "d215b7dc-54f2-411d-83df-df88a6ae19ea",
+      "name": "Agent-3",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "LfKAswmZa0IoGC5f",
+          "name": "GPT-4.1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an elite video editor for a top YouTube creator specializing in viral educational content. Your talent is taking good moments and making them *perfect*. You have an unparalleled sense of rhythm, narrative, and what makes a clip emotionally resonant.\n\nYour task is to act as the final editor on a batch of pre-selected video clips. I have already found promising moments and expanded the transcript context around them. Your job is to trim each expanded clip down to its most impactful and coherent form, ready for final rendering.\n\n**CORE MANDATES - NON-NEGOTIABLE**\n1.  **PROCESS EVERY CLIP**: You **MUST** process every single clip from the input array. The output array **MUST** contain the exact same number of objects as the input array.\n2.  **MAINTAIN SEQUENCE**: The clips in your output array **MUST** be in the same order as they appeared in the input.\n3.  **NEVER SKIP A CLIP**: If you determine that a clip cannot be improved or reasonably fit within the duration rules, **DO NOT OMIT IT**. Instead, you **MUST** return the clip in its original, expanded form. For the `editor_justification`, briefly explain why a trim was not possible (e.g., \"The core content could not be trimmed further without losing context.\").\n\n**CRITICAL INSTRUCTIONS**\n1.  **Your Guide is the `original_reason`**: This is the creative brief from the first AI. It tells you *why* a clip is special. If it says \"Funny Joke,\" your final cut **must** include the setup and the punchline. If it says \"Moral Boost,\" it **must** feel complete and inspiring. Use this as your north star.\n2.  **Find the Natural Story Arc**: Do not start or end a clip abruptly. Listen to the flow of the conversation. Find the true beginning of the thought and the satisfying end. The final clip should feel like a complete, self-contained micro-story.\n3.  **Adhere to Duration Rules**: The final clip **should ideally** be between **15 and 59 seconds**. This is a strong guideline, but your Core Mandate to never skip a clip is more important.\n4.  **Timestamp Precision is Paramount**: This is a technical requirement. The timestamps you return **MUST** come directly from the `start` values in the provided `segments_for_editing` array.\n    *   `final_start_time`: Must be the exact `start` value of the **first segment** you select for the final clip.\n    *   `final_end_time`: Must be the exact `start` of the **last segment** you select. My downstream code will add the duration of this last segment. Do not calculate it yourself.\n5.  **Do Not Alter the Transcript**: You are an editor, not a writer. Your final output text must be a direct, contiguous copy of the segments you select. Do not add, remove, or change any words.\n\n**INPUT DATA**\n\nThe following JSON contains the video ID and a list of clips you need to refine. For each clip, you have the creative brief (`original_reason`) and the raw material (`segments_for_editing` and `expanded_transcript_text`).\n\n{{ JSON.stringify($json.clips_for_ai_editor) }}\n\n**OUTPUT SPECIFICATION**\n\nYou **MUST** return ONLY a single, valid JSON array of objects. Do not include any introductory text, backticks, or explanations. Each object in the array represents one finalized clip and must follow this exact schema:\n\n*   `VideoId`: The original video ID.\n*   `final_start_time`: The precise start time in seconds (a number) from the input segments.\n*   `final_end_time`: The precise start time in seconds (a number) of the *last* segment in your edited clip.\n*   `final_text`: The complete, concatenated text of the refined clip.\n*   `category`: The original category of the clip.\n*   `confidence`: The original confidence score.\n*   `editor_justification`: A brief, one-sentence explanation for your editing choice, justifying why this new cut is better.\n\n**EXAMPLE OF PERFECT OUTPUT**\n\n```json\n[\n  {\n    \"VideoId\": \"46CaYBwEp_k\",\n    \"final_start_time\": 224.28,\n    \"final_end_time\": 291.44,\n    \"final_text\": \"पता नहीं तो मैं बताता हूं शादी से पहले आप स्केलर थे क्योंकि आप किसी भी डायरेक्शन में भाग सकते थे समझ रहे हो बात को और अब आप वेक्टर हो कैसे क्योंकि आप किसी और डायरेक्शन में नहीं भाग सकते आपकी डायरेक्शन फिक्स हो गई ना अच्छा हां समझ गए क्या वेक्टर मतलब एक डायरेक्शन भागना भागना है एक ही तरफ देखना दूसरी तरफ देखे तो फिर जिंदा नहीं बचोगे है ना और स्केलर कौन से लोग होते हैं कहीं भी जा सकते हैं वो उनका कोई डायरेक्शन फिक्स नहीं है नहीं है तो ऐसे कुछ लोग के नाम बताइए पी डब्लू में जो वेक्टर है टीचर्स में टीचर्स में वेक्टर जो है पंकज सर है पंकज सर वेक्टर है और स्केलर बता दो स्केलर सर है सर कुछ फैकULTY नीट में ही है जो जैसे कि बता दो कोई दिक्कत नहीं इसमें क्या है एक्टर स्केलर जो मतलब कहीं भी डायरेक्शन में जा सकते हैं अत सर है और जो दो दो मल्टीपल सब्जेक्ट पढ़ा सकते हैं अपने दीपक वशिष्ठ सर है जिनकी शादी नहीं हुई वो स्केलर है ना हा हा वो ज्यादातर विपिन सर भी स्लर है हा विपिन सर हैलर है चलिए बहुत बढ़िया बच्चे भी बता रहे थैंक यू सो मच सर\",\n    \"category\": \"Funny Story\",\n    \"confidence\": 0.98,\n    \"editor_justification\": \"Trimmed the clip to start with the direct question and end after the teacher-student banter, creating a complete and hilarious narrative arc.\"\n  }\n]\n```",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        580
+      ],
+      "id": "1ef70a6f-c64d-4796-ab35-1d1163ff5a0c",
+      "name": "Polished Timestamps"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are given:\n- A Hindi lecture transcript as a JSON array of segments, each with \"start - end\", and \"text\".\n- A JEE/NEET trend-analysis JSON object (with trending topics, keywords, content types, etc.).\n\nYour task is to analyze the transcript and extract up to 10 segments with the highest viral potential as YouTube Shorts. Use the following guidelines:\n\n- Consider humor, relatability, poetic style (Shayari), emotional resonance, or motivational punch as positive indicators.\n- Look for segments with a strong hook or call-to-action (e.g. lines that immediately grab attention).\n- Incorporate the trend-analysis insights (weight ~15%) by preferring segments that align with the trending topics and keywords in the JEE/NEET space. Always give a little higher weightage to funnier side.\n- Favor concise, punchy statements or stories with a twist or payoff, such as an inspiring line or clever joke.\n- Assign each selected segment exactly one category from: \"Sarcastic Line\", \"Shayari\", \"Funny Joke\", \"Emotional Story\", \"Funny Story\", \"Inspiring Story\", \"Success Story\", \"Moral Boost\", \"Attention to Chat\", \"Tips and Tricks\".\n- Each output object must include:\n    - \"start\": the segment’s start time (from the transcript)\n    - \"end\": the segment's end time (from the transcript.Note that 2 or more consecutive segments can also be considered if needed.In that case start of the first one and end of the last one)\n    - \"text\": the exact Hindi transcript text\n    - \"category\": one of the labels above\n    - \"reason\": a one-line English justification highlighting why this segment was chosen (e.g. its emotional or trend relevance)\n\nReturn only a JSON array of objects in the following structure (no additional text):\n\n[\n  {\n    \"start\": 12.34,\n    \"end\": 48.68,\n    \"text\": \"यह एक मजेदार कहानी है\",\n    \"category\": \"Funny Story\",\n    \"reason\": \"This segment is a funny story that aligns with trending topics and is likely to engage students.\",\n\"confidence\": how confident you are that it will go viral\n  },\n  ...\n]\n\nHere is the transcript:\n{{ $json.formattedTranscript }}\nHere is the trend analysis:\n{{ $json.formattedTrends }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        60,
+        100
+      ],
+      "id": "a65ab796-8055-44e9-bbd3-ef0c38f58eec",
+      "name": "Timestamps"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "532e3b02-2adc-430c-9db2-bb06f8aa2fec",
+              "leftValue": "={{ $json.Type }}",
+              "rightValue": "youtube",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -580,
+        840
+      ],
+      "id": "be168810-7e91-492a-b09d-c9feb21370de",
+      "name": "If YT-1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "532e3b02-2adc-430c-9db2-bb06f8aa2fec",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "youtube",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -580,
+        1140
+      ],
+      "id": "37f4ee51-80f4-4899-aca4-7d8ccc614044",
+      "name": "If YT-2",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// N8N Code Node - Transform transcript data for MongoDB\n// Input: Current transcript structure from backend\n// Output: MongoDB-ready format\n\n// Get the input data from the previous node\nconst inputData = $input.all();\n\n// Process each item (in case there are multiple)\nconst transformedItems = inputData.map(item => {\n  const data = item.json.result || item.json;\n  \n  // Extract basic info\n  const VideoId = data.VideoId;\n  const segments = data.segments || [];\n  \n  // Generate transcriptText with timestamps\n  let transcriptText = '';\n  const transformedSegments = [];\n  \n  segments.forEach(segment => {\n    // Add to transcript text with timestamp format [start_time]\n    const startTime = parseFloat(segment.start).toFixed(2);\n    transcriptText += `[${startTime}] ${segment.text}\\n`;\n    \n    // Transform segment structure\n    const transformedSegment = {\n      start: parseFloat(segment.start),\n      dur: parseFloat(segment.end) - parseFloat(segment.start), // Calculate duration\n      text: segment.text\n    };\n    \n    transformedSegments.push(transformedSegment);\n  });\n  \n  // Remove trailing newline\n  transcriptText = transcriptText.trim();\n  \n  // Create the MongoDB document structure\n  const mongoDocument = {\n    VideoId: VideoId,\n    createdAt: new Date().toISOString(),\n    transcriptText: transcriptText,\n    transcriptSegments: transformedSegments\n  };\n  \n  return {\n    json: mongoDocument\n  };\n});\n\n// Return the transformed data\nreturn transformedItems;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        920
+      ],
+      "id": "f37f4fc7-163d-40c9-896a-6daeab74026c",
+      "name": "DB Payload-2"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      // Pull VideoId straight off the incoming data\n      VideoId:   $json[\"VideoId\"],\n\n      // Timestamp it now\n      createdAt: new Date().toISOString(),\n\n      // Copy over the full transcript text\n      transcriptText:    $json[\"transcriptText\"],\n\n      // Include transcriptSegments if present, otherwise an empty array\n      transcriptSegments: $json[\"transcriptSegments\"] || []\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        760
+      ],
+      "id": "a263efdc-288a-4e9b-a920-58445bdc25fe",
+      "name": "DB Payload-1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W_mu1gQVLpOmYbZPWk0gJ7x412Abgl3UAh1xuwHJGbE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Clip ID": "={{ $json[\"Clip ID\"] }}",
+            "Drive Link": "={{ $json[\"Drive Link\"] }}"
+          },
+          "matchingColumns": [
+            "Clip ID"
+          ],
+          "schema": [
+            {
+              "id": "Video Link",
+              "displayName": "Video Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "VideoId",
+              "displayName": "VideoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Clip ID",
+              "displayName": "Clip ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Text ",
+              "displayName": "Text ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Editor Justification",
+              "displayName": "Editor Justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Drive Link",
+              "displayName": "Drive Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        340,
+        1060
+      ],
+      "id": "469d14f7-c7e2-40f2-9ec2-0aea88017085",
+      "name": "Drive Links",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1rF2ovT4P4qkzjyH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/trigger-video-processing",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1440,
+        20
+      ],
+      "id": "20274913-d782-4fdd-903f-d667bce04013",
+      "name": "Webhook",
+      "webhookId": "196513a7-6d40-441e-a316-dffcd34c3e85"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -1320,
+        100
+      ],
+      "id": "fb98aba7-6ca5-4314-941a-5aaf207a69b0",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1rF2ovT4P4qkzjyH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W_mu1gQVLpOmYbZPWk0gJ7x412Abgl3UAh1xuwHJGbE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Transcript": "={{ $json.transcriptLink }}",
+            "Status": "Analysing",
+            "VideoId": "={{ $('Has Data?').item.json.VideoId }}"
+          },
+          "matchingColumns": [
+            "VideoId"
+          ],
+          "schema": [
+            {
+              "id": "Video Link",
+              "displayName": "Video Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "VideoId",
+              "displayName": "VideoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clip ID",
+              "displayName": "Clip ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Text ",
+              "displayName": "Text ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Editor Justification",
+              "displayName": "Editor Justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Drive Link",
+              "displayName": "Drive Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -800,
+        340
+      ],
+      "id": "df538c32-b4c6-4e86-a9a9-f7e57ae4eb61",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1rF2ovT4P4qkzjyH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        340,
+        1200
+      ],
+      "id": "352baa6a-516f-49e2-8a87-62a604958667",
+      "name": "Wait1",
+      "webhookId": "c6f4e249-172b-4bf0-9607-3be0315dc315"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "VideoId": "={{ $json.VideoId }}",
+            "Status": "Processing",
+            "Video Link": "={{ $json.VideoLink }}",
+            "Type": "={{ $json.type }}"
+          },
+          "matchingColumns": [
+            "Video Link"
+          ],
+          "schema": [
+            {
+              "id": "Video Link",
+              "displayName": "Video Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "VideoId",
+              "displayName": "VideoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clip ID",
+              "displayName": "Clip ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Text ",
+              "displayName": "Text ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Editor Justification",
+              "displayName": "Editor Justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Drive Link",
+              "displayName": "Drive Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -800,
+        100
+      ],
+      "id": "dedeff42-425e-4829-a08a-3a5a68f59610",
+      "name": "Status and ID",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1rF2ovT4P4qkzjyH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "10ef75df-978d-4ab2-859d-61b3df8809a4",
+              "leftValue": "={{ $json.resultCount }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -800,
+        480
+      ],
+      "id": "230dab01-3ef0-4934-9d24-32e5d708fc95",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "collection": "transcripts",
+        "options": {},
+        "query": "={\n  \"VideoId\": \"{{ $json.VideoId }}\"\n}\n"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -1160,
+        480
+      ],
+      "id": "390bdb83-dba4-478b-89f1-cec39f2b9aef",
+      "name": "Data Exists?",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "ktCidLc7iOWSZBr6",
+          "name": "MongoDB account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Extract the two merged JSON objects\nconst original = items[0]?.json || {};\nconst mongo    = items[1]?.json || {};\n\n// 2. Detect if the Mongo object actually has any keys\nconst hasMongo = Object.keys(mongo).length > 0;\n\n// 3. Build a single result object:\n//    - resultCount = 1 if only original exists, 2 if Mongo data exists\n//    - spread in original fields always\n//    - spread in mongo fields only if present\nconst result = {\n  resultCount: hasMongo ? 2 : 1,\n  ...original,\n  ...(hasMongo ? mongo : {})\n};\n\n// 4. Return as single‑item array\nreturn [{ json: result }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -920,
+        480
+      ],
+      "id": "0317c7d0-51c7-47d9-8198-88a6ea905f7a",
+      "name": "Has Data?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1040,
+        480
+      ],
+      "id": "5c47ad65-8196-4e44-be97-a8e75de36114",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"start\": 12.34,\n    \"end\": 48.68,\n    \"text\": \"यह एक मजेदार कहानी है\",\n    \"category\": \"Funny Story\",\n    \"reason\": \"This segment is a funny story that aligns with trending topics and is likely to engage students.\",\n\"confidence\": 0.93\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        200,
+        -20
+      ],
+      "id": "51604fe6-b1da-4ab5-a02d-e3004f144851",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the first item with an array under `output`\nconst outputItem = items.find(item => Array.isArray(item.json.output));\nlet outputArray = outputItem ? outputItem.json.output : [];\n\n// Function to convert seconds to MM:SS format\nfunction secondsToMinutes(seconds) {\n  const minutes = Math.floor(seconds / 60);\n  const remainingSeconds = Math.floor(seconds % 60);\n  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;\n}\n\n// Map over each clip and convert start/end\nconst modifiedOutput = outputArray.map(clip => {\n  return {\n    ...clip,\n    start: secondsToMinutes(parseFloat(clip.start)),\n    end: secondsToMinutes(parseFloat(clip.end))\n  };\n});\n\n// Return modified result\nreturn [\n  {\n    json: {\n      output: modifiedOutput\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        100
+      ],
+      "id": "b0c49644-20c6-410a-b2fd-11dc760476f3",
+      "name": "1st Screening"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        160
+      ],
+      "id": "9c1bd736-f170-4e0b-9bb7-2585c5fd98b4",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {
+    "Parse Transcript": {
+      "main": [
+        [
+          {
+            "node": "DB Payload-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store in MongoDB": {
+      "main": [
+        [
+          {
+            "node": "preprocessing transcript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extracting Link Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sheet Link": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Trend Analyser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trend Analyser": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "start,end,text": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Raw plus clipped",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "preprocessing transcript": {
+      "main": [
+        [
+          {
+            "node": "start,end,text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Timestamps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Raw plus clipped": {
+      "main": [
+        [
+          {
+            "node": "Expand Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expand Context": {
+      "main": [
+        [
+          {
+            "node": "Prepare Initial Clip Rows",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Polished Timestamps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extracting Link Id": {
+      "main": [
+        [
+          {
+            "node": "Final Output with VideoId",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Final Output with VideoId": {
+      "main": [
+        [
+          {
+            "node": "Prepare Polished Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Setting up Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setting up Payload": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Single JSON2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Is Completed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Completed?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Final Drive Links",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 30 Seconds",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analaysis Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Initial Clip Rows": {
+      "main": [
+        [
+          {
+            "node": "Append Initial Clip Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Polished Data": {
+      "main": [
+        [
+          {
+            "node": "Update with Polished Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Final Drive Links": {
+      "main": [
+        [
+          {
+            "node": "Drive Links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Single JSON2": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Analaysis Complete": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract ID": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Status and ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Transcript(GDrive)": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 Seconds1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30 Seconds1": {
+      "main": [
+        [
+          {
+            "node": "Check Status1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Completed?1": {
+      "main": [
+        [
+          {
+            "node": "DB Payload-2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 30 Seconds1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status1": {
+      "main": [
+        [
+          {
+            "node": "Is Completed?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Transcript (YT)": {
+      "main": [
+        [
+          {
+            "node": "Parse Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Polished Timestamps",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "If YT-2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Extract ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Processing(YT))": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Processing(GDrive)": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 Seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent-1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Trend Analyser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent-2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Timestamps",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent-3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Polished Timestamps",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Polished Timestamps": {
+      "main": [
+        [
+          {
+            "node": "Final Output with VideoId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timestamps": {
+      "main": [
+        [
+          {
+            "node": "1st Screening",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If YT-1": {
+      "main": [
+        [
+          {
+            "node": "Get Transcript (YT)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Transcript(GDrive)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If YT-2": {
+      "main": [
+        [
+          {
+            "node": "Start Processing(YT))",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Start Processing(GDrive)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DB Payload-2": {
+      "main": [
+        [
+          {
+            "node": "Store in MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DB Payload-1": {
+      "main": [
+        [
+          {
+            "node": "Store in MongoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drive Links": {
+      "main": [
+        []
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status and ID": {
+      "main": [
+        [
+          {
+            "node": "Data Exists?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Trend Analyser",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Extracting Link Id",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "preprocessing transcript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Sheet Link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If YT-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Exists?": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Has Data?": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Has Data?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Timestamps",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1st Screening": {
+      "main": [
+        [
+          {
+            "node": "Raw plus clipped",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "headers": {
+          "host": "godfather2002.app.n8n.cloud",
+          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+          "content-length": "119",
+          "accept": "*/*",
+          "accept-encoding": "gzip, br",
+          "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+          "cdn-loop": "cloudflare; loops=1; subreqs=1",
+          "cf-connecting-ip": "23.249.61.188",
+          "cf-ew-via": "15",
+          "cf-ipcountry": "IN",
+          "cf-ray": "95a4570d36857ef9-MAA",
+          "cf-visitor": "{\"scheme\":\"https\"}",
+          "cf-worker": "n8n.cloud",
+          "content-type": "application/json",
+          "origin": "http://localhost:5173",
+          "priority": "u=1, i",
+          "referer": "http://localhost:5173/",
+          "sec-ch-ua": "\"Google Chrome\";v=\"137\", \"Chromium\";v=\"137\", \"Not/A)Brand\";v=\"24\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"macOS\"",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "cross-site",
+          "x-forwarded-for": "23.249.61.188, 172.69.129.155",
+          "x-forwarded-host": "godfather2002.app.n8n.cloud",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "traefik-prod-users-gwc-76-b4b8c88f-tkrcr",
+          "x-is-trusted": "yes",
+          "x-real-ip": "23.249.61.188"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "action": "process_videos",
+          "message": "Processing 4 new video(s)",
+          "timestamp": "2025-07-05T05:07:38.554Z",
+          "videoCount": 4
+        },
+        "webhookUrl": "https://godfather2002.app.n8n.cloud/webhook/trigger-video-processing",
+        "executionMode": "production"
+      }
+    ],
+    "When clicking ‘Execute workflow’": [
+      {}
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f6f2837186bfdb0d4e9e30df2125803da0b670f268415eb3e2c748c9fc339a05"
+  }
+}

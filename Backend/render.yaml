@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: yt-shorts-backend
+    env: python
+    plan: starter
+    buildCommand: |
+      apt-get update && apt-get install -y ffmpeg &&
+      pip install --upgrade pip &&
+      pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT backed_api:app --workers 2 --timeout 300
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_APP
+        value: backed_api.py
+    healthCheckPath: /health
+    disk:
+      name: yt-shorts-disk
+      mountPath: /opt/render/project/src/temp_videos
+      sizeGB: 10 

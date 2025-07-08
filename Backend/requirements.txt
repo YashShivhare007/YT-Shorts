@@ -1,0 +1,15 @@
+Flask==3.0.0
+gunicorn==21.2.0
+google-auth-oauthlib==1.2.0
+google-api-python-client==2.110.0
+yt-dlp==2024.1.7
+assemblyai==0.21.0
+python-dotenv==1.0.0
+urllib3==2.1.0
+requests==2.31.0
+certifi==2023.11.17
+gdown==4.7.1
+pathlib2==2.3.7
+google-auth-httplib2==0.2.0
+google-auth==2.25.2
+google-cloud-storage==2.10.0
