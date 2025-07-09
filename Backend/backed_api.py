@@ -20,12 +20,6 @@ app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
-# Import the backend processor
-import backend_processor
-
-# Initialize the processor globally
-processor = backend_processor.VideoProcessor()
-
 # Global status tracking
 processing_status = {}
 
@@ -37,15 +31,17 @@ ytdlp_check_cache = {
     'needs_upgrade': False
 }
 
-# Try to import backend_processor and catch any errors
+# Import the backend processor with proper error handling
+processor = None
 try:
     import backend_processor
+    processor = backend_processor.VideoProcessor()
     logging.info("Successfully imported backend_processor")
 except Exception as e:
     logging.error(f"Failed to import backend_processor: {e}")
     import traceback
     logging.error(f"Import traceback: {traceback.format_exc()}")
-    backend_processor = None
+    # Don't set processor to None here - let the app start and handle it in routes
 
 def send_progress_update(VideoId, status, message):
     """Send progress update to the status tracking system"""
@@ -124,6 +120,12 @@ def ensure_ytdlp_updated():
 def process_youtube_background(youtube_url, VideoId, clips):
     """Background processing for YouTube videos"""
     try:
+        # Check if processor is available
+        if processor is None:
+            send_progress_update(VideoId, 'failed', 'Backend processor not available')
+            logging.error("Backend processor not available for YouTube processing")
+            return
+        
         # Check and upgrade yt-dlp if needed
         send_progress_update(VideoId, 'checking', '🔍 Checking yt-dlp version...')
         upgrade_success, upgrade_message = ensure_ytdlp_updated()
@@ -223,6 +225,12 @@ def process_youtube_background(youtube_url, VideoId, clips):
 def process_drive_clips_background(drive_url, VideoId, clips):
     """Background processing for Drive videos"""
     try:
+        # Check if processor is available
+        if processor is None:
+            send_progress_update(VideoId, 'failed', 'Backend processor not available')
+            logging.error("Backend processor not available for Drive processing")
+            return
+
         # Check if video already exists locally
         video_filename = f"{VideoId}_source.mp4"
         existing_video_path = processor.output_dir / video_filename
@@ -313,6 +321,12 @@ def process_drive_clips_background(drive_url, VideoId, clips):
 def generate_transcript_background(drive_url, VideoId):
     """Background processing for transcript generation"""
     try:
+        # Check if processor is available
+        if processor is None:
+            send_progress_update(VideoId, 'failed', 'Backend processor not available')
+            logging.error("Backend processor not available for transcript generation")
+            return
+
         send_progress_update(VideoId, 'starting', 'Starting transcript generation...')
         
         result = processor.generate_transcript_from_drive(drive_url, VideoId)
@@ -337,6 +351,12 @@ def generate_transcript_background(drive_url, VideoId):
 def process_drive_clips_background_new(drive_url, VideoId, input_data):
     """Background processing for Drive clips with new input format"""
     try:
+        # Check if processor is available
+        if processor is None:
+            send_progress_update(VideoId, 'failed', 'Backend processor not available')
+            logging.error("Backend processor not available for Drive clips processing")
+            return
+
         send_progress_update(VideoId, 'starting', 'Starting Drive clips processing with new format...')
         
         result = processor.process_video_drive_clips(drive_url, VideoId, input_data=input_data)
@@ -550,7 +570,20 @@ def ytdlp_version_endpoint():
 @app.route('/health', methods=['GET'])
 def health_check():
     """Simple health check endpoint"""
-    return jsonify({'status': 'healthy', 'timestamp': time.time()})
+    try:
+        health_status = {
+            'status': 'healthy',
+            'timestamp': time.time(),
+            'processor_available': processor is not None,
+            'app_loaded': True
+        }
+        return jsonify(health_status)
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': time.time()
+        }), 500
 
 @app.route('/endpoints', methods=['GET'])
 def list_endpoints():
