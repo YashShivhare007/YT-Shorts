@@ -513,6 +513,8 @@ class VideoProcessor:
                 "-t", str(duration),
                 "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black",
                 "-c:v", "libx264",
+                "-preset", "ultrafast",
+                "-threads", "2",
                 "-c:a", "aac",
                 "-b:v", "2M",
                 "-b:a", "128k",
