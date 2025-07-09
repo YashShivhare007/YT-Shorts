@@ -4,7 +4,7 @@ nixPkgs = [
     "python311Packages.pip", 
     "python311Packages.setuptools", 
     "python311Packages.wheel",
-    "python311Packages.virtualenv",
+    "python311Packages.venv",
     "ffmpeg", 
     "yt-dlp", 
     "gcc", 
@@ -13,16 +13,16 @@ nixPkgs = [
 
 [phases.install]
 cmds = [
-    "python -m ensurepip --upgrade",
-    "python -m pip install --upgrade pip setuptools wheel",
-    "python -m pip install --no-cache-dir -r requirements.txt"
+    "python3.11 -m venv /opt/venv",
+    ". /opt/venv/bin/activate && pip install --upgrade pip",
+    ". /opt/venv/bin/activate && pip install -r requirements.txt"
 ]
 
 [phases.build]
 cmds = ["mkdir -p temp_videos"]
 
 [variables]
-PYTHONPATH = "/app"
+PYTHONPATH = "/app:/opt/venv/lib/python3.11/site-packages"
 PIP_DISABLE_PIP_VERSION_CHECK = "1"
 PYTHONUNBUFFERED = "1"
 PIP_NO_CACHE_DIR = "1" 

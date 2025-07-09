@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "gunicorn --bind 0.0.0.0:$PORT test_app:app --workers 1 --timeout 30"
+startCommand = ". /opt/venv/bin/activate && gunicorn --bind 0.0.0.0:$PORT backed_api:app --workers 2 --timeout 300 --keep-alive 2"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "always"
@@ -10,4 +10,4 @@ restartPolicyType = "always"
 [env]
 PYTHON_VERSION = "3.11"
 FLASK_ENV = "production"
-FLASK_APP = "test_app.py" 
+FLASK_APP = "backed_api.py" 
