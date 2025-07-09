@@ -550,14 +550,16 @@ class VideoProcessor:
             file = self.drive_service.files().create(
                 body=file_metadata,
                 media_body=media,
-                fields='id,webViewLink'
+                fields='id,webViewLink',
+                supportsDrives=True  # Crucial for Shared Drive support
             ).execute()
             
             # Make the file publicly accessible
             self.drive_service.permissions().create(
                 fileId=file['id'],
                 body={'type': 'anyone', 'role': 'reader'},
-                fields='id'
+                fields='id',
+                supportsDrives=True  # Also required here for Shared Drives
             ).execute()
             
             print(f"Uploaded to Drive: {file['webViewLink']}")
