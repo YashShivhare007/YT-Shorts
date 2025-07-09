@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { LogIn, LogOut, User, Shield } from 'lucide-react';
-import googleAuthService from '../services/googleAuth';
+import { LogIn, LogOut, Shield } from 'lucide-react';
+import { googleAuthService } from '../services/googleAuth';
 
 interface GoogleUser {
   id: string;
@@ -10,7 +10,7 @@ interface GoogleUser {
   picture: string;
 }
 
-interface GoogleSignInProps {
+export interface GoogleSignInProps {
   onSignInChange?: (isSignedIn: boolean, user?: GoogleUser) => void;
 }
 

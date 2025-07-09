@@ -1,20 +1,12 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Play, 
-  CheckCircle, 
-  X, 
-  Edit, 
-  Download,
+  Pause, 
+  Download, 
+  Share2, 
   Clock,
-  Eye,
-  ThumbsUp,
-  ThumbsDown,
-  ExternalLink,
-  RefreshCw,
-  ChevronDown,
-  ChevronRight,
-  Video,
+  Calendar,
   BarChart3
 } from 'lucide-react';
 import { useVideosWithClips } from '../hooks/useVideosWithClips';
@@ -143,7 +135,7 @@ const ClipReview = () => {
                 }}
                 className="p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-70"
               >
-                <ExternalLink className="w-4 h-4" />
+                <Share2 className="w-4 h-4" />
               </button>
             ) : (
               <div className="p-2 bg-gray-600 bg-opacity-50 rounded-full text-gray-300">
@@ -229,7 +221,7 @@ const ClipReview = () => {
                 </h2>
                 <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
                   <span className="flex items-center space-x-1">
-                    <Video className="w-4 h-4" />
+                    <Play className="w-4 h-4" />
                     <span>Status: {video.status}</span>
                   </span>
                   <span className="flex items-center space-x-1">
@@ -245,9 +237,9 @@ const ClipReview = () => {
                 {isExpanded ? 'Collapse' : 'Expand'}
               </span>
               {isExpanded ? (
-                <ChevronDown className="w-5 h-5 text-gray-400" />
+                <Pause className="w-5 h-5 text-gray-400" />
               ) : (
-                <ChevronRight className="w-5 h-5 text-gray-400" />
+                <Play className="w-5 h-5 text-gray-400" />
               )}
             </div>
           </div>
@@ -263,7 +255,7 @@ const ClipReview = () => {
           >
             {allVideoClips.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <Eye className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <p>No clips available for this video</p>
               </div>
             ) : (
@@ -279,7 +271,7 @@ const ClipReview = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-center h-64">
-          <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+          <Clock className="w-8 h-8 animate-spin text-blue-600" />
           <span className="ml-2 text-gray-600">Loading clips...</span>
         </div>
       </div>
@@ -314,7 +306,7 @@ const ClipReview = () => {
               onClick={refetch}
               className="btn-secondary flex items-center space-x-2"
             >
-              <RefreshCw className="w-4 h-4" />
+              <Clock className="w-4 h-4" />
               <span>Refresh</span>
             </button>
             
@@ -384,7 +376,7 @@ const ClipReview = () => {
           <div className="lg:col-span-2">
             {filteredVideos.length === 0 ? (
               <div className="text-center py-12">
-                <Eye className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No clips available</h3>
                 <p className="text-gray-600">
                   Upload some videos and wait for processing to complete
@@ -462,7 +454,7 @@ const ClipReview = () => {
                             onClick={() => handleDownload(clip.driveLink)}
                             className="flex-1 btn-primary flex items-center justify-center space-x-2"
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            <Share2 className="w-4 h-4" />
                             <span>Open in Drive</span>
                           </button>
                           <button
@@ -484,7 +476,7 @@ const ClipReview = () => {
                 ) : null;
               })() : (
                 <div className="text-center text-gray-500 py-8">
-                  <Eye className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                   <p>Select a clip to view details</p>
                 </div>
               )}
