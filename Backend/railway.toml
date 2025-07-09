@@ -10,5 +10,4 @@ restartPolicyType = "always"
 [env]
 PYTHON_VERSION = "3.11"
 FLASK_ENV = "production"
-FLASK_APP = "backed_api.py"
-NIXPACKS_APT_PACKAGES = "ffmpeg" 
+FLASK_APP = "backed_api.py" 
