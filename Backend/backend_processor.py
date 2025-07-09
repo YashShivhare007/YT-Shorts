@@ -551,7 +551,7 @@ class VideoProcessor:
                 body=file_metadata,
                 media_body=media,
                 fields='id,webViewLink',
-                supportsDrives=True  # Crucial for Shared Drive support
+                supportsAllDrives=True  # Corrected parameter name
             ).execute()
             
             # Make the file publicly accessible
@@ -559,7 +559,7 @@ class VideoProcessor:
                 fileId=file['id'],
                 body={'type': 'anyone', 'role': 'reader'},
                 fields='id',
-                supportsDrives=True  # Also required here for Shared Drives
+                supportsAllDrives=True  # Corrected parameter name
             ).execute()
             
             print(f"Uploaded to Drive: {file['webViewLink']}")
