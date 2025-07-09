@@ -536,7 +536,15 @@ class VideoProcessor:
             raise RuntimeError("Google Drive not initialized")
             
         try:
-            file_metadata = {'name': filename}
+            # Get the parent folder ID from environment variables
+            parent_folder_id = os.getenv("GOOGLE_DRIVE_FOLDER_ID")
+            if not parent_folder_id:
+                raise ValueError("GOOGLE_DRIVE_FOLDER_ID environment variable not set.")
+
+            file_metadata = {
+                'name': filename,
+                'parents': [parent_folder_id]  # Specify the parent folder
+            }
             media = MediaFileUpload(file_path, resumable=True)
             
             file = self.drive_service.files().create(
