@@ -9,6 +9,9 @@ export const config = {
     clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
     apiKey: import.meta.env.VITE_GOOGLE_SHEETS_API_KEY
   },
+  backend: {
+    baseUrl: import.meta.env.VITE_BACKEND_URL || 'https://yt-shorts-production-0c9a.up.railway.app'
+  },
   n8n: {
     webhookUrl: import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://godfather-22.app.n8n.cloud/webhook/196513a7-6d40-441e-a316-dffcd34c3e85'
   }
@@ -28,9 +31,13 @@ export const validateEnvironment = () => {
     console.warn('Please add them to your .env file');
   }
 
-  // Optional: warn about n8n webhook URL
+  // Optional: warn about optional variables
   if (!import.meta.env.VITE_N8N_WEBHOOK_URL) {
     console.warn('VITE_N8N_WEBHOOK_URL not set, using default URL');
+  }
+  
+  if (!import.meta.env.VITE_BACKEND_URL) {
+    console.warn('VITE_BACKEND_URL not set, using default Railway URL');
   }
   
   return missing.length === 0;
