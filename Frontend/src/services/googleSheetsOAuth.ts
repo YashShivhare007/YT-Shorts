@@ -110,7 +110,8 @@ class GoogleSheetsOAuthService {
       const values = urls.map(url => {
         // Determine type based on URL
         const type = url.includes('youtube.com') || url.includes('youtu.be') ? 'YouTube' : 'Drive';
-        return [url, type, '', '', '', '', '', '', '', '', '', '', '', ''];
+        // [Link, Type, VideoId, Transcript, Status, ...]
+        return [url, type, '', '', 'Waiting', '', '', '', '', '', '', '', '', ''];
       });
       
       const requestBody = {

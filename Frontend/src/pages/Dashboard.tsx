@@ -19,6 +19,32 @@ import { Link } from 'react-router-dom';
 import DebugAuth from '../components/DebugAuth';
 import { getDriveEmbedUrl, getDriveDownloadUrl } from '../utils/drive';
 
+const getStatusProgress = (status: string): number => {
+  if (!status) return 0;
+  const lowerCaseStatus = status.toLowerCase();
+
+  // Use .includes() for more robust matching
+  if (lowerCaseStatus.includes('complete')) return 100;
+  if (lowerCaseStatus.includes('clipping')) return 72;
+  if (lowerCaseStatus.includes('polishing')) return 50;
+  if (lowerCaseStatus.includes('extracting')) return 35;
+  if (lowerCaseStatus.includes('generating transcript')) return 25;
+  if (lowerCaseStatus.includes('analysing')) return 10;
+  if (lowerCaseStatus.includes('waiting')) return 0;
+  if (lowerCaseStatus.includes('failed')) return 0;
+
+  return 0; // Default for unknown statuses
+};
+
+const ProgressBar = ({ progress }: { progress: number }) => (
+  <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+    <div 
+      className="bg-blue-600 h-2.5 rounded-full" 
+      style={{ width: `${progress}%`, transition: 'width 0.5s ease-in-out' }}
+    ></div>
+  </div>
+);
+
 const Dashboard = () => {
   const { 
     processingStatus, 
@@ -326,11 +352,11 @@ const Dashboard = () => {
                         <p className="text-sm font-medium text-gray-900 truncate">
                           Video: {activity.VideoId || 'Processing...'}
                         </p>
-                        <p className="text-xs text-gray-500">{formatTimeAgo(activity.status || '')}</p>
+                        <div className="mt-2">
+                          <ProgressBar progress={getStatusProgress(activity.status || '')} />
+                          <p className="text-xs text-gray-500 mt-1">{activity.status}</p>
+                        </div>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(activity.status || '')}`}>
-                        {activity.status}
-                      </span>
                     </div>
                   );
                 })}

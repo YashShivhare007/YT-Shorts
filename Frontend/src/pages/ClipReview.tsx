@@ -147,7 +147,10 @@ const ClipReview = () => {
       layout
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="card flex flex-col space-y-3"
+      className={`card flex flex-col space-y-3 cursor-pointer transition-all duration-200 ${
+        selectedClip === clip.clipId ? 'ring-2 ring-primary-500' : 'hover:shadow-lg'
+      }`}
+      onClick={() => setSelectedClip(clip.clipId)}
     >
       {/* Video Preview */}
       <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
