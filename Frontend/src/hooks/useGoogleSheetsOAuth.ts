@@ -12,7 +12,7 @@ export const useGoogleSheetsOAuth = () => {
     failed: 0
   });
   const [completedClips, setCompletedClips] = useState<ClipData[]>([]);
-  const [recentActivity, setRecentActivity] = useState<VideoWithClips[]>([]);
+  const [activeVideos, setActiveVideos] = useState<VideoWithClips[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
@@ -58,10 +58,10 @@ export const useGoogleSheetsOAuth = () => {
         googleSheetsOAuthService.getAllVideos(),
         googleSheetsOAuthService.getProcessingStatus(),
         googleSheetsOAuthService.getCompletedClips(),
-        googleSheetsOAuthService.getRecentActivity()
+        googleSheetsOAuthService.getActiveVideos()
       ]);
 
-      console.log('📊 Fetched data:', {
+      console.log('�� Fetched data:', {
         videos: videosData.length,
         status: statusData,
         clips: clipsData.length,
@@ -71,7 +71,7 @@ export const useGoogleSheetsOAuth = () => {
       setVideos(videosData);
       setProcessingStatus(statusData);
       setCompletedClips(clipsData);
-      setRecentActivity(activityData);
+      setActiveVideos(activityData);
     } catch (err) {
       console.error('Error fetching data:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -169,7 +169,7 @@ export const useGoogleSheetsOAuth = () => {
             setVideos([]);
             setProcessingStatus({ total: 0, processing: 0, completed: 0, failed: 0 });
             setCompletedClips([]);
-            setRecentActivity([]);
+            setActiveVideos([]);
             setError(null);
           }
         });
@@ -200,7 +200,7 @@ export const useGoogleSheetsOAuth = () => {
     videos,
     processingStatus,
     completedClips,
-    recentActivity,
+    activeVideos,
     
     // Auth state
     isSignedIn,

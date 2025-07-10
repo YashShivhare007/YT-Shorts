@@ -48,7 +48,7 @@ const ProgressBar = ({ progress }: { progress: number }) => (
 const Dashboard = () => {
   const { 
     processingStatus, 
-    recentActivity, 
+    activeVideos,
     completedClips,
     loading, 
     error, 
@@ -318,7 +318,7 @@ const Dashboard = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="card"
           >
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Status</h2>
             {loading ? (
               <div className="animate-pulse space-y-4">
                 {[1, 2, 3].map(i => (
@@ -331,17 +331,17 @@ const Dashboard = () => {
                   </div>
                 ))}
               </div>
-            ) : recentActivity.length === 0 ? (
+            ) : activeVideos.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 <Video className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>No recent activity</p>
+                <p>No videos are currently processing</p>
                 <Link to="/upload" className="text-primary-600 hover:text-primary-700 text-sm">
                   Upload some videos to get started
                 </Link>
               </div>
             ) : (
               <div className="space-y-4">
-                {recentActivity.slice(0, 5).map((activity, index) => {
+                {activeVideos.map((activity, index) => {
                   const Icon = getActivityIcon(activity.status || '');
                   return (
                     <div key={index} className="flex items-start space-x-3">

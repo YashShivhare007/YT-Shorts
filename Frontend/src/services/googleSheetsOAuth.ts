@@ -108,10 +108,10 @@ class GoogleSheetsOAuthService {
 
     try {
       const values = urls.map(url => {
-        // Determine type based on URL
-        const type = url.includes('youtube.com') || url.includes('youtu.be') ? 'YouTube' : 'Drive';
+        const type = this.validateUrl(url).type;
+        const videoId = this.extractVideoId(url);
         // [Link, Type, VideoId, Transcript, Status, ...]
-        return [url, type, '', '', 'Waiting', '', '', '', '', '', '', '', '', ''];
+        return [url, type, videoId || '', '', 'Waiting', '', '', '', '', '', '', '', '', ''];
       });
       
       const requestBody = {
@@ -308,16 +308,19 @@ class GoogleSheetsOAuthService {
 
       // Map videos with their clips
       const videosWithClips: VideoWithClips[] = videoRows
-        .filter(video => video.VideoId) // Only include videos with valid VideoId
         .map(video => {
-          const clips = clipsByVideoId.get(video.VideoId!) || [];
+          // Use VideoId if it exists, otherwise this video won't have clips mapped yet
+          const clips = video.VideoId ? clipsByVideoId.get(video.VideoId) || [] : [];
           const completedClips = clips.filter(clip => clip.driveLink && clip.driveLink !== '').length;
           
-          console.log(`🎯 Mapping video "${video.VideoId}": found ${clips.length} clips (${completedClips} completed)`);
+          // Use a temporary ID for the key if VideoId is not available yet
+          const displayId = video.VideoId || video.videoLink.slice(-15);
+          
+          console.log(`🎯 Mapping video "${displayId}": found ${clips.length} clips (${completedClips} completed)`);
           
           return {
             videoLink: video.videoLink,
-            VideoId: video.VideoId!,
+            VideoId: displayId,
             transcript: video.transcript || '',
             status: video.status || '',
             clips: clips,
@@ -408,16 +411,14 @@ class GoogleSheetsOAuthService {
       const total = videoMetadataRows.length;
       
       const completed = videoMetadataRows.filter(v => 
-        v.status === 'Analysis complete'
-      ).length;
-      
-      const processing = videoMetadataRows.filter(v => 
-        v.status === 'Processing' || v.status === 'Analysing'
+        v.status?.toLowerCase() === 'analysis complete'
       ).length;
       
       const failed = videoMetadataRows.filter(v => 
-        v.status && v.status.includes('Failed')
+        v.status && v.status.toLowerCase().includes('failed')
       ).length;
+
+      const processing = total - completed - failed;
 
       console.log('📈 Status counts:', { total, processing, completed, failed });
       
@@ -475,17 +476,19 @@ class GoogleSheetsOAuthService {
     }
   }
 
-  // Get recent activity (last 10 processed videos) - Updated for n8n structure
-  async getRecentActivity(): Promise<VideoWithClips[]> {
+  // Get active videos (all videos that are not yet complete or failed)
+  async getActiveVideos(): Promise<VideoWithClips[]> {
     try {
       const videosWithClips = await this.getVideosWithClips();
       
       return videosWithClips
-        .filter(v => v.status && v.status !== 'Pending' && v.status !== '' && v.status !== 'Processing')
-        .slice(-10)
-        .reverse();
+        .filter(v => {
+          const status = v.status?.toLowerCase() || '';
+          return status !== 'analysis complete' && !status.includes('failed');
+        })
+        .sort((a, b) => (a.VideoId > b.VideoId ? 1 : -1)); // Keep a stable order
     } catch (error) {
-      console.error('Error fetching recent activity:', error);
+      console.error('Error fetching active videos:', error);
       return [];
     }
   }

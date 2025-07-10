@@ -6,7 +6,6 @@ export const useVideosWithClips = (refreshInterval = 30000) => {
   const [videosWithClips, setVideosWithClips] = useState<VideoWithClips[]>([]);
   const [completedClips, setCompletedClips] = useState<ClipData[]>([]);
   const [completedClipsByVideo, setCompletedClipsByVideo] = useState<VideoWithClips[]>([]);
-  const [recentActivity, setRecentActivity] = useState<VideoWithClips[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,18 +17,15 @@ export const useVideosWithClips = (refreshInterval = 30000) => {
         videosData,
         clipsData,
         clipsByVideoData,
-        activityData
       ] = await Promise.all([
         googleSheetsOAuthService.getVideosWithClips(),
         googleSheetsOAuthService.getCompletedClips(),
         googleSheetsOAuthService.getCompletedClipsByVideo(),
-        googleSheetsOAuthService.getRecentActivity()
       ]);
 
       setVideosWithClips(videosData);
       setCompletedClips(clipsData);
       setCompletedClipsByVideo(clipsByVideoData);
-      setRecentActivity(activityData);
     } catch (err) {
       console.error('Error fetching videos with clips:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -50,7 +46,6 @@ export const useVideosWithClips = (refreshInterval = 30000) => {
     videosWithClips,
     completedClips,
     completedClipsByVideo,
-    recentActivity,
     loading,
     error,
     refetch: fetchData
