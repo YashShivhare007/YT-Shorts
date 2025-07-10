@@ -37,19 +37,6 @@
     },
     {
       "parameters": {
-        "jsCode": "const mongoId = $json[\"_id\"]; // MongoDB ID\nconst n8nDomain = \"https://godfather2002.app.n8n.cloud\"; // Replace with your n8n URL\nconst link = `${n8nDomain}/webhook/getTranscript?id=${mongoId}`;\n\n// Google Sheets formula to make it clickable:\nconst sheetFormula = `=HYPERLINK(\"${link}\", \"View Transcript\")`;\n\nreturn [{\n  json: {\n    transcriptLink: sheetFormula\n  }\n}];\n"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -920,
-        340
-      ],
-      "id": "72fbefa4-c9eb-4ad1-90fb-9943195fe6cf",
-      "name": "Build Sheet Link"
-    },
-    {
-      "parameters": {
         "jsonSchemaExample": "{\n  \"trendingTopics\": [\"<List of high-level content trends (e.g., sarcastic comebacks, topper stories)>\"],\n  \"popularKeywords\": [\"<List of high-performing hashtags/keywords used in viral Shorts>\"],\n  \"contentIdeas\": [\n    {\n      \"title\": \"<Shorts-style video title>\",\n      \"theme\": \"<Category label such as Sarcastic Line, Moral Boost, Shayari, etc.>\",\n      \"reason\": \"<Why this works: e.g., hooks student emotion, fits last-minute prep anxiety>\"\n    }\n  ],\n  \"engagementPatterns\": {\n    \"storytelling\": true,\n    \"callToChat\": true,\n    \"lyrical/musicalEdits\": true,\n    \"emotionalAppeal\": true\n  },\n  \"channelObservations\": {\n    \"PW_Alpha\": \"<Pattern observed (e.g., emotional stories are popular)>\",\n    \"PW_NEET_Squad\": \"<Pattern observed>\"\n  }\n}\n"
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
@@ -216,7 +203,7 @@
     },
     {
       "parameters": {
-        "url": "=https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/status/{{ $('If YT-2').item.json.VideoId }}",
+        "url": "=https://yt-shorts-production-0c9a.up.railway.app/status/{{ $('If YT-2').item.json.VideoId }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -911,7 +898,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/generate-transcript",
+        "url": "https://yt-shorts-production-0c9a.up.railway.app/generate-transcript",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -999,7 +986,7 @@
     },
     {
       "parameters": {
-        "url": "=https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/status/{{ $('Get Transcript(GDrive)').item.json.VideoId }}",
+        "url": "=https://yt-shorts-production-0c9a.up.railway.app/status/{{ $('Get Transcript(GDrive)').item.json.VideoId }}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -1108,7 +1095,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/process-youtube",
+        "url": "https://yt-shorts-production-0c9a.up.railway.app/process-youtube",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -1152,7 +1139,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://2267-2401-4900-91fd-5611-6d25-ae55-53c5-9809.ngrok-free.app/process-drive-clips",
+        "url": "https://yt-shorts-production-0c9a.up.railway.app/process-drive-clips",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -1312,7 +1299,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -580,
+        -540,
         840
       ],
       "id": "be168810-7e91-492a-b09d-c9feb21370de",
@@ -1346,7 +1333,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -580,
+        -540,
         1140
       ],
       "id": "37f4ee51-80f4-4899-aca4-7d8ccc614044",
@@ -1635,7 +1622,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Transcript": "={{ $json.transcriptLink }}",
+            "Transcript": "={{ $json.transcriptText }}",
             "Status": "Analysing",
             "VideoId": "={{ $('Has Data?').item.json.VideoId }}"
           },
@@ -1802,8 +1789,8 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -800,
-        340
+        -540,
+        460
       ],
       "id": "df538c32-b4c6-4e86-a9a9-f7e57ae4eb61",
       "name": "Update row in sheet",
@@ -2144,6 +2131,205 @@
       ],
       "id": "9c1bd736-f170-4e0b-9bb7-2585c5fd98b4",
       "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1W_mu1gQVLpOmYbZPWk0gJ7x412Abgl3UAh1xuwHJGbE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Transcript": "={{ $json.transcriptText }}",
+            "Status": "Analysing",
+            "VideoId": "={{ $json.VideoId }}"
+          },
+          "matchingColumns": [
+            "VideoId"
+          ],
+          "schema": [
+            {
+              "id": "Video Link",
+              "displayName": "Video Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Type",
+              "displayName": "Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "VideoId",
+              "displayName": "VideoId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Transcript",
+              "displayName": "Transcript",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Clip ID",
+              "displayName": "Clip ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Start",
+              "displayName": "Start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "End",
+              "displayName": "End",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Text ",
+              "displayName": "Text ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Editor Justification",
+              "displayName": "Editor Justification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Drive Link",
+              "displayName": "Drive Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Confidence",
+              "displayName": "Confidence",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -540,
+        980
+      ],
+      "id": "65de6f0f-c824-4b8f-96f1-34e6a35e450c",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "1rF2ovT4P4qkzjyH",
+          "name": "Google Sheets account"
+        }
+      }
     }
   ],
   "connections": {
@@ -2170,15 +2356,9 @@
             "node": "Extracting Link Id",
             "type": "main",
             "index": 0
-          }
-        ]
-      ]
-    },
-    "Build Sheet Link": {
-      "main": [
-        [
+          },
           {
-            "node": "Update row in sheet",
+            "node": "Update row in sheet1",
             "type": "main",
             "index": 0
           }
@@ -2728,6 +2908,11 @@
         ]
       ]
     },
+    "Update row in sheet": {
+      "main": [
+        []
+      ]
+    },
     "Wait1": {
       "main": [
         [
@@ -2779,7 +2964,7 @@
             "index": 0
           },
           {
-            "node": "Build Sheet Link",
+            "node": "Update row in sheet",
             "type": "main",
             "index": 0
           }
@@ -2871,37 +3056,37 @@
           "accept-encoding": "gzip, br",
           "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
           "cdn-loop": "cloudflare; loops=1; subreqs=1",
-          "cf-connecting-ip": "23.249.61.188",
+          "cf-connecting-ip": "14.194.166.70",
           "cf-ew-via": "15",
           "cf-ipcountry": "IN",
-          "cf-ray": "95a4570d36857ef9-MAA",
+          "cf-ray": "95c6579532247fc1-MAA",
           "cf-visitor": "{\"scheme\":\"https\"}",
           "cf-worker": "n8n.cloud",
           "content-type": "application/json",
-          "origin": "http://localhost:5173",
+          "origin": "https://yt-shorts-1.vercel.app",
           "priority": "u=1, i",
-          "referer": "http://localhost:5173/",
+          "referer": "https://yt-shorts-1.vercel.app/",
           "sec-ch-ua": "\"Google Chrome\";v=\"137\", \"Chromium\";v=\"137\", \"Not/A)Brand\";v=\"24\"",
           "sec-ch-ua-mobile": "?0",
           "sec-ch-ua-platform": "\"macOS\"",
           "sec-fetch-dest": "empty",
           "sec-fetch-mode": "cors",
           "sec-fetch-site": "cross-site",
-          "x-forwarded-for": "23.249.61.188, 172.69.129.155",
+          "x-forwarded-for": "14.194.166.70, 172.69.131.246",
           "x-forwarded-host": "godfather2002.app.n8n.cloud",
           "x-forwarded-port": "443",
           "x-forwarded-proto": "https",
-          "x-forwarded-server": "traefik-prod-users-gwc-76-b4b8c88f-tkrcr",
+          "x-forwarded-server": "traefik-prod-users-gwc-76-b4b8c88f-j8d6k",
           "x-is-trusted": "yes",
-          "x-real-ip": "23.249.61.188"
+          "x-real-ip": "14.194.166.70"
         },
         "params": {},
         "query": {},
         "body": {
           "action": "process_videos",
-          "message": "Processing 4 new video(s)",
-          "timestamp": "2025-07-05T05:07:38.554Z",
-          "videoCount": 4
+          "message": "Processing 1 new video(s)",
+          "timestamp": "2025-07-09T08:09:56.818Z",
+          "videoCount": 1
         },
         "webhookUrl": "https://godfather2002.app.n8n.cloud/webhook/trigger-video-processing",
         "executionMode": "production"
