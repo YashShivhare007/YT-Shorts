@@ -2,12 +2,14 @@
 builder = "nixpacks"
 
 [deploy]
-# Using a single worker to ensure in-memory state is consistent for status checks.
-# Increased timeout to 600s to handle long-running video tasks.
-# Pointing to "Backend.backed_api:app" to be explicit about the application path.
-startCommand = ". .venv/bin/activate && gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 600 'Backend.backed_api:app'"
+# Corrected start command:
+# - Using the correct venv path: /opt/venv
+# - Using the correct application path: backed_api:app
+# - Using a single worker to ensure in-memory state is consistent.
+# - Increased timeout to 600s to handle long-running video tasks.
+startCommand = ". /opt/venv/bin/activate && gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 600 backed_api:app"
 healthcheckPath = "/health"
-healthcheckTimeout = 600
+healthcheckTimeout = 120
 restartPolicyType = "always"
 
 [env]
