@@ -43,14 +43,26 @@ except Exception as e:
     logging.error(f"Import traceback: {traceback.format_exc()}")
     # Don't set processor to None here - let the app start and handle it in routes
 
-def send_progress_update(VideoId, status, message):
-    """Send progress update to the status tracking system"""
-    processing_status[VideoId] = {
+def send_progress_update(VideoId, task_type, status, message, result=None):
+    """Send progress update to the status tracking system for a specific task."""
+    if VideoId not in processing_status:
+        processing_status[VideoId] = {
+            'transcript': {'status': 'pending', 'message': 'Awaiting task'},
+            'clips': {'status': 'pending', 'message': 'Awaiting task'}
+        }
+    
+    update_payload = {
         'status': status,
         'message': message,
         'timestamp': time.time()
     }
-    logging.info(f"Progress update for {VideoId}: {status} - {message}")
+
+    if result:
+        update_payload['result'] = result
+
+    processing_status[VideoId][task_type] = update_payload
+    logging.info(f"Progress update for {VideoId} [{task_type}]: {status} - {message}")
+
 
 def check_ytdlp_version():
     """Check if yt-dlp needs to be upgraded (with caching)"""
@@ -119,43 +131,44 @@ def ensure_ytdlp_updated():
 
 def process_youtube_background(youtube_url, VideoId, clips):
     """Background processing for YouTube videos"""
+    task_type = 'clips'
     try:
         # Check if processor is available
         if processor is None:
-            send_progress_update(VideoId, 'failed', 'Backend processor not available')
+            send_progress_update(VideoId, task_type, 'failed', 'Backend processor not available')
             logging.error("Backend processor not available for YouTube processing")
             return
         
         # Check and upgrade yt-dlp if needed
-        send_progress_update(VideoId, 'checking', '🔍 Checking yt-dlp version...')
+        send_progress_update(VideoId, task_type, 'checking', '🔍 Checking yt-dlp version...')
         upgrade_success, upgrade_message = ensure_ytdlp_updated()
         
         if upgrade_success:
-            send_progress_update(VideoId, 'ready', f'✅ {upgrade_message}')
+            send_progress_update(VideoId, task_type, 'ready', f'✅ {upgrade_message}')
             logging.info(f"yt-dlp check/upgrade successful for {VideoId}: {upgrade_message}")
         else:
-            send_progress_update(VideoId, 'warning', f'⚠️ {upgrade_message} - continuing with existing version')
+            send_progress_update(VideoId, task_type, 'warning', f'⚠️ {upgrade_message} - continuing with existing version')
             logging.warning(f"yt-dlp check/upgrade failed for {VideoId}: {upgrade_message}")
         
         # Download video
-        send_progress_update(VideoId, 'downloading', 'Starting video download from YouTube...')
+        send_progress_update(VideoId, task_type, 'downloading', 'Starting video download from YouTube...')
         try:
-            send_progress_update(VideoId, 'downloading', 'Downloading video from YouTube...')
+            send_progress_update(VideoId, task_type, 'downloading', 'Downloading video from YouTube...')
             video_path = processor.download_video(youtube_url, VideoId)
-            send_progress_update(VideoId, 'downloading', 'Video download completed')
+            send_progress_update(VideoId, task_type, 'downloading', 'Video download completed')
         except Exception as e:
-            send_progress_update(VideoId, 'failed', f'Download failed: {str(e)}')
+            send_progress_update(VideoId, task_type, 'failed', f'Download failed: {str(e)}')
             raise
         
         # Setup Google Drive
-        send_progress_update(VideoId, 'setting_up', 'Setting up Google Drive...')
+        send_progress_update(VideoId, task_type, 'setting_up', 'Setting up Google Drive...')
         processor.setup_google_drive()
         
         # Process clips
         results = []
         for i, clip in enumerate(clips):
             try:
-                send_progress_update(VideoId, 'processing', f'Processing clip {i+1}/{len(clips)}...')
+                send_progress_update(VideoId, task_type, 'processing', f'Processing clip {i+1}/{len(clips)}...')
                 
                 start_time = clip['final_start_time']
                 end_time = clip['final_end_time']
@@ -166,7 +179,7 @@ def process_youtube_background(youtube_url, VideoId, clips):
                 clip_filename = f"clip_{i+1}_{category}"
                 clip_path = processor.create_clip(video_path, start_time, end_time, clip_filename, category)
                 
-                send_progress_update(VideoId, 'uploading', f'Uploading clip {i+1}/{len(clips)} to Drive...')
+                send_progress_update(VideoId, task_type, 'uploading', f'Uploading clip {i+1}/{len(clips)} to Drive...')
                 drive_filename = f"{VideoId}_{clip_filename}.mp4"
                 drive_link = processor.upload_to_drive(clip_path, drive_filename)
                 
@@ -197,7 +210,7 @@ def process_youtube_background(youtube_url, VideoId, clips):
                 })
         
         # Cleanup
-        send_progress_update(VideoId, 'cleaning_up', 'Cleaning up temporary files...')
+        send_progress_update(VideoId, task_type, 'cleaning_up', 'Cleaning up temporary files...')
         processor.cleanup_files([video_path])
         
         # Final result
@@ -210,24 +223,20 @@ def process_youtube_background(youtube_url, VideoId, clips):
             'results': results
         }
         
-        processing_status[VideoId] = {
-            'status': 'completed',
-            'result': final_result,
-            'timestamp': time.time()
-        }
-        logging.info(f"Progress update for {VideoId}: completed - Processing completed successfully!")
+        send_progress_update(VideoId, task_type, 'completed', 'Processing completed successfully!', result=final_result)
         
     except Exception as e:
-        send_progress_update(VideoId, 'failed', f'Processing failed: {str(e)}')
-        processing_status[VideoId]['error'] = str(e)
+        error_message = f'Processing failed: {str(e)}'
+        send_progress_update(VideoId, task_type, 'failed', error_message)
         logging.error(f"Processing failed for {VideoId}: {e}")
 
 def process_drive_clips_background(drive_url, VideoId, clips):
     """Background processing for Drive videos"""
+    task_type = 'clips'
     try:
         # Check if processor is available
         if processor is None:
-            send_progress_update(VideoId, 'failed', 'Backend processor not available')
+            send_progress_update(VideoId, task_type, 'failed', 'Backend processor not available')
             logging.error("Backend processor not available for Drive processing")
             return
 
@@ -236,22 +245,22 @@ def process_drive_clips_background(drive_url, VideoId, clips):
         existing_video_path = processor.output_dir / video_filename
         
         if existing_video_path.exists() and existing_video_path.stat().st_size > 0:
-            send_progress_update(VideoId, 'reusing_video', f"✅ Found existing video: {video_filename}. Skipping download.")
+            send_progress_update(VideoId, task_type, 'reusing_video', f"✅ Found existing video: {video_filename}. Skipping download.")
             video_path = str(existing_video_path)
         else:
-            send_progress_update(VideoId, 'downloading', '📥 Video not found locally. Starting download from Drive...')
+            send_progress_update(VideoId, task_type, 'downloading', '📥 Video not found locally. Starting download from Drive...')
             processor.setup_google_drive()
             video_path = processor.download_from_drive_fixed(drive_url, video_filename)
         
         # Setup Google Drive for uploads
-        send_progress_update(VideoId, 'setting_up', 'Setting up Google Drive for uploads...')
+        send_progress_update(VideoId, task_type, 'setting_up', 'Setting up Google Drive for uploads...')
         processor.setup_google_drive()
         
         # Process clips
         results = []
         for i, clip in enumerate(clips):
             try:
-                send_progress_update(VideoId, 'processing', f'Processing clip {i+1}/{len(clips)}...')
+                send_progress_update(VideoId, task_type, 'processing', f'Processing clip {i+1}/{len(clips)}...')
                 
                 start_time = clip['final_start_time']
                 end_time = clip['final_end_time']
@@ -262,7 +271,7 @@ def process_drive_clips_background(drive_url, VideoId, clips):
                 clip_filename = f"clip_{i+1}_{category}"
                 clip_path = processor.create_clip(video_path, start_time, end_time, clip_filename, category)
                 
-                send_progress_update(VideoId, 'uploading', f'Uploading clip {i+1}/{len(clips)} to Drive...')
+                send_progress_update(VideoId, task_type, 'uploading', f'Uploading clip {i+1}/{len(clips)} to Drive...')
                 drive_filename = f"{VideoId}_{clip_filename}.mp4"
                 drive_link = processor.upload_to_drive(clip_path, drive_filename)
                 
@@ -292,8 +301,9 @@ def process_drive_clips_background(drive_url, VideoId, clips):
                     'error': str(e)
                 })
         
-        # Cleanup (keep video for reuse)
-        send_progress_update(VideoId, 'cleaning_up', 'Cleaning up temporary files...')
+        # Cleanup video file
+        send_progress_update(VideoId, task_type, 'cleaning_up', 'Cleaning up temporary files...')
+        processor.cleanup_files([video_path])
         
         # Final result
         final_result = {
@@ -302,62 +312,59 @@ def process_drive_clips_background(drive_url, VideoId, clips):
             'clips_processed': len(results),
             'successful_clips': len([r for r in results if r['status'] == 'success']),
             'failed_clips': len([r for r in results if r['status'] == 'failed']),
-            'results': results,
-            'video_reused': existing_video_path.exists()
+            'results': results
         }
         
-        processing_status[VideoId] = {
-            'status': 'completed',
-            'result': final_result,
-            'timestamp': time.time()
-        }
-        logging.info(f"Progress update for {VideoId}: completed - Processing completed successfully!")
-        
+        send_progress_update(VideoId, task_type, 'completed', 'Processing completed successfully!', result=final_result)
+
     except Exception as e:
-        send_progress_update(VideoId, 'failed', f'Processing failed: {str(e)}')
-        processing_status[VideoId]['error'] = str(e)
+        error_message = f'Processing failed: {str(e)}'
+        send_progress_update(VideoId, task_type, 'failed', error_message)
         logging.error(f"Processing failed for {VideoId}: {e}")
 
 def generate_transcript_background(drive_url, VideoId):
-    """Background processing for transcript generation"""
+    """Background job for generating transcript from a Drive video"""
+    task_type = 'transcript'
     try:
-        # Check if processor is available
         if processor is None:
-            send_progress_update(VideoId, 'failed', 'Backend processor not available')
+            send_progress_update(VideoId, task_type, 'failed', 'Backend processor not available')
             logging.error("Backend processor not available for transcript generation")
             return
+            
+        send_progress_update(VideoId, task_type, 'processing', 'Starting transcript generation...')
+        processor.setup_google_drive()
+        
+        send_progress_update(VideoId, task_type, 'downloading', 'Downloading video from Drive...')
+        video_filename = f"{VideoId}_source.mp4"
+        video_path = processor.download_from_drive_fixed(drive_url, video_filename)
 
-        send_progress_update(VideoId, 'starting', 'Starting transcript generation...')
-        
-        result = processor.generate_transcript_from_drive(drive_url, VideoId)
-        
-        processing_status[VideoId] = {
+        send_progress_update(VideoId, task_type, 'transcribing', 'Video downloaded, starting transcription...')
+        transcript_result = processor.transcribe_video(video_path, VideoId)
+
+        final_result = {
+            'VideoId': VideoId,
             'status': 'completed',
-            'result': result,
-            'timestamp': time.time()
+            'segments': transcript_result
         }
-        logging.info(f"Progress update for {VideoId}: completed - Transcription completed successfully!")
-        
+
+        send_progress_update(VideoId, task_type, 'completed', 'Transcript generation completed', result=final_result)
+
     except Exception as e:
-        error_msg = str(e)
-        send_progress_update(VideoId, 'failed', f'Transcription failed: {error_msg}')
-        processing_status[VideoId] = {
-            'status': 'failed',
-            'error': error_msg,
-            'timestamp': time.time()
-        }
-        logging.error(f"Transcription failed for {VideoId}: {e}")
+        error_message = f'Transcript generation failed: {str(e)}'
+        send_progress_update(VideoId, task_type, 'failed', error_message)
+        logging.error(f"Transcript generation failed for {VideoId}: {e}")
 
 def process_drive_clips_background_new(drive_url, VideoId, input_data):
     """Background processing for Drive clips with new input format"""
+    task_type = 'clips'
     try:
         # Check if processor is available
         if processor is None:
-            send_progress_update(VideoId, 'failed', 'Backend processor not available')
+            send_progress_update(VideoId, task_type, 'failed', 'Backend processor not available')
             logging.error("Backend processor not available for Drive clips processing")
             return
 
-        send_progress_update(VideoId, 'starting', 'Starting Drive clips processing with new format...')
+        send_progress_update(VideoId, task_type, 'starting', 'Starting Drive clips processing with new format...')
         
         result = processor.process_video_drive_clips(drive_url, VideoId, input_data=input_data)
         
@@ -369,7 +376,7 @@ def process_drive_clips_background_new(drive_url, VideoId, input_data):
         logging.info(f"Progress update for {VideoId}: completed - Processing completed successfully!")
         
     except Exception as e:
-        send_progress_update(VideoId, 'failed', f'Processing failed: {str(e)}')
+        send_progress_update(VideoId, task_type, 'failed', f'Processing failed: {str(e)}')
         processing_status[VideoId]['error'] = str(e)
         logging.error(f"Processing failed for {VideoId}: {e}")
 
@@ -515,16 +522,37 @@ def generate_transcript():
 
 @app.route('/status/<VideoId>', methods=['GET'])
 def get_status(VideoId):
-    """Get processing status for a specific VideoId"""
-    if VideoId not in processing_status:
-        return jsonify({'status': 'not_found', 'message': 'No processing found for this VideoId'})
-    
-    status_info = processing_status[VideoId]
-    return jsonify(status_info)
+    """DEPRECATED: Returns the overall status of a video process."""
+    return jsonify({
+        'warning': 'This endpoint is deprecated and will be removed.',
+        'message': 'Please use the new task-specific status endpoints.',
+        'endpoints': {
+            'transcript_status': f'/status/transcript/{VideoId}',
+            'clips_status': f'/status/clips/{VideoId}'
+        },
+        'current_state': processing_status.get(VideoId, {'status': 'not_found', 'message': 'No task initiated for this VideoId.'})
+    }), 410 # 410 Gone
+
+@app.route('/status/transcript/<VideoId>', methods=['GET'])
+def get_transcript_status(VideoId):
+    """Returns the status of the transcript generation task."""
+    status = processing_status.get(VideoId, {}).get('transcript')
+    if not status:
+        return jsonify({'status': 'not_found', 'message': 'No transcript task initiated for this VideoId.'}), 404
+    return jsonify(status)
+
+@app.route('/status/clips/<VideoId>', methods=['GET'])
+def get_clips_status(VideoId):
+    """Returns the status of the video clipping task."""
+    status = processing_status.get(VideoId, {}).get('clips')
+    if not status:
+        return jsonify({'status': 'not_found', 'message': 'No clips task initiated for this VideoId.'}), 404
+    return jsonify(status)
+
 
 @app.route('/upgrade-ytdlp', methods=['POST'])
 def upgrade_ytdlp_endpoint():
-    """Manually check and upgrade yt-dlp if needed"""
+    """Manually trigger a yt-dlp upgrade."""
     logging.info("Received request at /upgrade-ytdlp")
     try:
         # Run the smart upgrade check in background to avoid blocking
