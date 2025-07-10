@@ -505,19 +505,16 @@ class VideoProcessor:
             # Output path for the clip
             clip_path = self.output_dir / f"{output_name}_{category}.mp4"
             
-            # FFmpeg command for Shorts format (1080x1920, 9:16 aspect ratio)
+            # FFmpeg command optimized for speed using stream copy.
+            # This avoids re-encoding, which is the most time-consuming part.
+            # The trade-off is that we can't apply filters like scaling/padding.
             cmd = [
                 "ffmpeg",
-                "-i", video_path,
                 "-ss", str(start_time),
+                "-i", video_path,
                 "-t", str(duration),
-                "-vf", "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black",
-                "-c:v", "libx264",
-                "-preset", "ultrafast",
-                "-threads", "2",
-                "-c:a", "aac",
-                "-b:v", "2M",
-                "-b:a", "128k",
+                "-c:v", "copy",
+                "-c:a", "copy",
                 "-y",  # Overwrite output file
                 str(clip_path)
             ]
@@ -1312,7 +1309,7 @@ class VideoProcessor:
 
 वीडियो ID / Video ID: {transcript_data['VideoId']}
 बनाया गया / Created: {transcript_data['created_at']}
-मॉडल / Model: {transcript_data['model_info']['model_name']}
+मॉडल / Model: {transcript_data['model_info']['model_name']} 
 भाषा / Language: हिंदी (Hindi)
 गुणवत्ता / Quality: {transcript_data['processing_info']['total_segments']} segments
 
