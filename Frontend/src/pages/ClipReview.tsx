@@ -7,10 +7,12 @@ import {
   Share2, 
   Clock,
   Calendar,
-  BarChart3
+  BarChart3,
+  ExternalLink
 } from 'lucide-react';
 import { useVideosWithClips } from '../hooks/useVideosWithClips';
 import type { ClipData, VideoWithClips } from '../services/googleSheetsOAuth';
+import { getDriveEmbedUrl, getDriveDownloadUrl } from '../utils/drive';
 
 const ClipReview = () => {
   const [selectedClip, setSelectedClip] = useState<string | null>(null);
@@ -21,17 +23,17 @@ const ClipReview = () => {
   const { videosWithClips, loading, error, refetch } = useVideosWithClips();
 
   // Filter videos based on availability of clips (ANY clips, not just completed ones)
-  const filteredVideos = videosWithClips.filter(video => {
+  const filteredVideos = videosWithClips.filter((video: VideoWithClips) => {
     return video.clips.length > 0; // Show videos that have any clips at all
   });
 
   // For stats, separate completed vs total clips
-  const allClips = filteredVideos.flatMap(video => video.clips);
-  const completedClips = allClips.filter(clip => clip.driveLink && clip.driveLink !== '');
+  const allClips = filteredVideos.flatMap((video: VideoWithClips) => video.clips);
+  const completedClips = allClips.filter((clip: ClipData) => clip.driveLink && clip.driveLink !== '');
 
   // Flatten all clips with video context (for flat view) - show ALL clips
-  const allClipsWithContext = filteredVideos.flatMap(video => 
-    video.clips.map(clip => ({
+  const allClipsWithContext = filteredVideos.flatMap((video: VideoWithClips) => 
+    video.clips.map((clip: ClipData) => ({
       ...clip,
       videoLink: video.videoLink,
       VideoId: video.VideoId,
@@ -40,7 +42,7 @@ const ClipReview = () => {
   );
 
   // For the flat view, optionally filter to only show completed clips
-  const completedClipsWithContext = allClipsWithContext.filter(clip => 
+  const completedClipsWithContext = allClipsWithContext.filter((clip: ClipData) => 
     clip.driveLink && clip.driveLink !== ''
   );
 
@@ -55,7 +57,7 @@ const ClipReview = () => {
   };
 
   const expandAllVideos = () => {
-    setExpandedVideos(new Set(filteredVideos.map(v => v.VideoId)));
+    setExpandedVideos(new Set(filteredVideos.map((v: VideoWithClips) => v.VideoId)));
   };
 
   const collapseAllVideos = () => {
@@ -76,15 +78,43 @@ const ClipReview = () => {
   };
 
   const handleDownload = (driveLink: string) => {
-    window.open(driveLink, '_blank');
+    const downloadUrl = getDriveDownloadUrl(driveLink);
+    if (downloadUrl) {
+      window.open(downloadUrl, '_blank');
+    } else {
+      // Fallback for old/unexpected formats
+      window.open(driveLink, '_blank');
+    }
+  };
+
+  const timeStringToSeconds = (timeStr: string): number => {
+    if (!timeStr || typeof timeStr !== 'string') return 0;
+
+    // Check if it's already a plain number (in seconds)
+    if (!isNaN(parseFloat(timeStr)) && isFinite(Number(timeStr))) {
+      return parseFloat(timeStr);
+    }
+
+    // Check for HH:MM:SS format
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 3 && parts.every(p => !isNaN(p))) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    if (parts.length === 2 && parts.every(p => !isNaN(p))) {
+      return parts[0] * 60 + parts[1];
+    }
+
+    return 0; // Fallback for unknown formats
   };
 
   const formatDuration = (start: string, end: string) => {
     try {
-      const startNum = parseFloat(start);
-      const endNum = parseFloat(end);
+      const startNum = timeStringToSeconds(start);
+      const endNum = timeStringToSeconds(end);
       const durationSeconds = endNum - startNum;
       
+      if (isNaN(durationSeconds) || durationSeconds < 0) return 'N/A';
+
       const minutes = Math.floor(durationSeconds / 60);
       const seconds = Math.floor(durationSeconds % 60);
       return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -114,81 +144,100 @@ const ClipReview = () => {
   const renderClipCard = (clip: ClipData & { videoLink?: string; VideoId?: string; videoStatus?: string }, showVideoInfo = false) => (
     <motion.div
       key={clip.clipId}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className={`card cursor-pointer transition-all duration-200 ${
-        selectedClip === clip.clipId ? 'ring-2 ring-primary-500' : 'hover:shadow-md'
-      }`}
-      onClick={() => setSelectedClip(clip.clipId)}
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="card flex flex-col space-y-3"
     >
-      <div className="flex space-x-4">
-        <div className="relative">
-          <div className="w-32 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <Play className="w-8 h-8 text-white" />
+      {/* Video Preview */}
+      <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
+        {clip.driveLink ? (
+          <iframe
+            src={getDriveEmbedUrl(clip.driveLink) || ''}
+            className="w-full h-full"
+            allow="autoplay; encrypted-media"
+            title="Clip Preview"
+          ></iframe>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-100">
+            <Clock className="w-8 h-8 text-gray-400" />
           </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            {clip.driveLink && clip.driveLink !== '' ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDownload(clip.driveLink);
-                }}
-                className="p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-70"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-            ) : (
-              <div className="p-2 bg-gray-600 bg-opacity-50 rounded-full text-gray-300">
-                <Clock className="w-4 h-4" />
-              </div>
-            )}
+        )}
+      </div>
+
+      {/* Clip Info */}
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 truncate">
+              {showVideoInfo 
+                ? `${getVideoTitle(clip.videoLink || '', clip.VideoId)} - Clip ${clip.clipNumber + 1}`
+                : `Clip ${clip.clipNumber + 1}`
+              }
+            </h3>
+            <p className="text-sm text-gray-600">
+              {formatDuration(clip.start, clip.end)} ({clip.start}s - {clip.end}s)
+            </p>
           </div>
-          <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1 rounded">
-            {formatDuration(clip.start, clip.end)}
-          </div>
+          <span className={`text-xs px-2 py-1 rounded-full ${
+            clip.driveLink && clip.driveLink !== '' 
+              ? 'text-green-600 bg-green-100' 
+              : 'text-yellow-600 bg-yellow-100'
+          }`}>
+            {clip.driveLink && clip.driveLink !== '' ? 'Available' : 'Processing'}
+          </span>
         </div>
         
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 truncate">
-            {showVideoInfo 
-              ? `${getVideoTitle(clip.videoLink || '', clip.VideoId)} - Clip ${clip.clipNumber + 1}`
-              : `Clip ${clip.clipNumber + 1}`
-            }
-          </h3>
-          <p className="text-sm text-gray-600 mb-2">
-            {clip.start}s - {clip.end}s
-          </p>
-          <p className="text-sm text-gray-700 line-clamp-2">
-            {clip.text || 'No transcript available'}
-          </p>
-          
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span className="flex items-center space-x-1">
-                <span className="font-medium">Category:</span>
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
-                  {clip.category || 'N/A'}
-                </span>
+        <p className="text-sm text-gray-700 line-clamp-2 mt-2">
+          {clip.text || 'No transcript available'}
+        </p>
+        
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center space-x-4 text-sm text-gray-500">
+            <span className="flex items-center space-x-1">
+              <span className="font-medium">Category:</span>
+              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                {clip.category || 'N/A'}
               </span>
-              <span className="flex items-center space-x-1">
-                <span className="font-medium">Confidence:</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  clip.confidence >= 0.8 ? 'bg-green-100 text-green-700' :
-                  clip.confidence >= 0.6 ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-red-100 text-red-700'
-                }`}>
-                  {(clip.confidence * 100).toFixed(0)}%
-                </span>
-              </span>
-            </div>
-            
-            <span className={`text-xs px-2 py-1 rounded-full ${
-              clip.driveLink && clip.driveLink !== '' 
-                ? 'text-green-600 bg-green-100' 
-                : 'text-yellow-600 bg-yellow-100'
-            }`}>
-              {clip.driveLink && clip.driveLink !== '' ? 'Available' : 'Processing'}
             </span>
+            <span className="flex items-center space-x-1">
+              <span className="font-medium">Confidence:</span>
+              <span className={`px-2 py-1 rounded-full text-xs ${
+                clip.confidence >= 0.8 ? 'bg-green-100 text-green-700' :
+                clip.confidence >= 0.6 ? 'bg-yellow-100 text-yellow-700' :
+                'bg-red-100 text-red-700'
+              }`}>
+                {(clip.confidence * 100).toFixed(0)}%
+              </span>
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-1">
+            {clip.driveLink && (
+              <>
+                <a
+                  href={getDriveDownloadUrl(clip.driveLink) || '#'}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-gray-400 hover:text-gray-600"
+                  title="Download Clip"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download className="w-4 h-4" />
+                </a>
+                <a
+                  href={clip.driveLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-gray-400 hover:text-gray-600"
+                  title="Open in Google Drive"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -251,10 +300,10 @@ const ClipReview = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="space-y-4 ml-8"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 ml-8"
           >
             {allVideoClips.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 md:col-span-2">
                 <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <p>No clips available for this video</p>
               </div>
@@ -405,9 +454,22 @@ const ClipReview = () => {
                 return clip ? (
                   <div className="space-y-4">
                     <div>
-                      <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <Play className="w-12 h-12 text-white" />
-                      </div>
+                      {clip.driveLink ? (
+                        <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
+                          <iframe
+                            src={getDriveEmbedUrl(clip.driveLink) || ''}
+                            className="w-full h-full"
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                            title="Selected Clip Preview"
+                          ></iframe>
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <Clock className="w-12 h-12 text-gray-400" />
+                          <p className="ml-2 text-gray-500">Processing...</p>
+                        </div>
+                      )}
                     </div>
                     
                     <div>
@@ -450,20 +512,25 @@ const ClipReview = () => {
                     <div className="flex space-x-2">
                       {clip.driveLink && clip.driveLink !== '' ? (
                         <>
-                          <button
-                            onClick={() => handleDownload(clip.driveLink)}
+                          <a
+                            href={getDriveDownloadUrl(clip.driveLink) || '#'}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="flex-1 btn-primary flex items-center justify-center space-x-2"
-                          >
-                            <Share2 className="w-4 h-4" />
-                            <span>Open in Drive</span>
-                          </button>
-                          <button
-                            onClick={() => handleDownload(clip.driveLink)}
-                            className="flex-1 btn-secondary flex items-center justify-center space-x-2"
                           >
                             <Download className="w-4 h-4" />
                             <span>Download</span>
-                          </button>
+                          </a>
+                          <a
+                            href={clip.driveLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 btn-secondary flex items-center justify-center space-x-2"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            <span>Open in Drive</span>
+                          </a>
                         </>
                       ) : (
                         <div className="flex-1 bg-gray-100 text-gray-500 py-2 px-4 rounded-lg text-center">

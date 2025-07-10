@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import GoogleSignIn from './GoogleSignIn';
+import pwLogo from '../256px-Physics_wallah_logo.svg.png';
 
 const Navbar = () => {
   const location = useLocation();
@@ -33,13 +34,8 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-primary-600 to-purple-600 rounded-lg"
-            >
-              <Zap className="w-5 h-5 text-white" />
-            </motion.div>
-            <span className="text-xl font-bold text-gray-900">AI Shorts Generator</span>
+            <img src={pwLogo} alt="PW Shorts Logo" className="h-8 w-auto" />
+            <span className="text-xl font-bold text-gray-800">PW Shorts</span>
           </Link>
 
           {/* Desktop Navigation */}

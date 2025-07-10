@@ -11,11 +11,13 @@ import {
   Eye,
   BarChart3,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-react';
 import { useGoogleSheetsOAuth } from '../hooks/useGoogleSheetsOAuth';
 import { Link } from 'react-router-dom';
 import DebugAuth from '../components/DebugAuth';
+import { getDriveEmbedUrl, getDriveDownloadUrl } from '../utils/drive';
 
 const Dashboard = () => {
   const { 
@@ -60,6 +62,42 @@ const Dashboard = () => {
           return AlertCircle;
         }
         return Clock;
+    }
+  };
+
+  const timeStringToSeconds = (timeStr: string): number => {
+    if (!timeStr || typeof timeStr !== 'string') return 0;
+
+    // Check if it's already a plain number (in seconds)
+    if (!isNaN(parseFloat(timeStr)) && isFinite(Number(timeStr))) {
+      return parseFloat(timeStr);
+    }
+
+    // Check for HH:MM:SS format
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 3 && parts.every(p => !isNaN(p))) {
+      return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    }
+    if (parts.length === 2 && parts.every(p => !isNaN(p))) {
+      return parts[0] * 60 + parts[1];
+    }
+
+    return 0; // Fallback for unknown formats
+  };
+
+  const formatDuration = (start: string, end: string) => {
+    try {
+      const startNum = timeStringToSeconds(start);
+      const endNum = timeStringToSeconds(end);
+      const durationSeconds = endNum - startNum;
+      
+      if (isNaN(durationSeconds) || durationSeconds < 0) return 'N/A';
+
+      const minutes = Math.floor(durationSeconds / 60);
+      const seconds = Math.floor(durationSeconds % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    } catch {
+      return 'N/A';
     }
   };
 
@@ -247,7 +285,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activity and Completed Clips */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -311,7 +349,7 @@ const Dashboard = () => {
               <div className="animate-pulse space-y-4">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="flex items-center space-x-3">
-                    <div className="w-16 h-9 bg-gray-200 rounded"></div>
+                    <div className="w-32 h-20 bg-gray-200 rounded"></div>
                     <div className="flex-1 space-y-2">
                       <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                       <div className="h-3 bg-gray-200 rounded w-1/2"></div>
@@ -326,42 +364,60 @@ const Dashboard = () => {
                 <p className="text-sm">Clips will appear here once processing is complete</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {completedClips.slice(0, 5).map((clip, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <div className="w-16 h-9 bg-gradient-to-r from-blue-500 to-purple-600 rounded flex items-center justify-center">
-                      <Play className="w-4 h-4 text-white" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {completedClips.slice(0, 3).map((clip, index) => (
+                  <div key={index} className="flex flex-col space-y-2">
+                    <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
+                      <iframe
+                        src={getDriveEmbedUrl(clip.driveLink) || ''}
+                        className="w-full h-full"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                        title="Selected Clip Preview"
+                      ></iframe>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {clip.category || 'Clip'} - {clip.clipId}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {clip.start} - {clip.end} • {clip.confidence && `${Math.round(clip.confidence * 100)}% confidence`}
-                      </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {clip.category || 'Clip'} - {clip.clipId}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDuration(clip.start, clip.end)} • {clip.confidence && `${Math.round(clip.confidence * 100)}%`}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <a
+                          href={getDriveDownloadUrl(clip.driveLink) || '#'}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-gray-400 hover:text-gray-600"
+                          title="Download Clip"
+                        >
+                          <Download className="w-4 h-4" />
+                        </a>
+                        <a
+                          href={clip.driveLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-gray-400 hover:text-gray-600"
+                          title="Open in Google Drive"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
                     </div>
-                    {clip.driveLink && (
-                      <a
-                        href={clip.driveLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 text-gray-400 hover:text-gray-600"
-                        title="Open in Google Drive"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
                   </div>
                 ))}
-                {completedClips.length > 5 && (
-                  <Link 
-                    to="/review" 
-                    className="block text-center text-primary-600 hover:text-primary-700 text-sm py-2"
-                  >
-                    View all {completedClips.length} clips →
-                  </Link>
-                )}
               </div>
+            )}
+            {completedClips.length > 3 && (
+              <Link 
+                to="/review" 
+                className="block text-center text-primary-600 hover:text-primary-700 text-sm py-2 mt-4"
+              >
+                View all {completedClips.length} clips →
+              </Link>
             )}
           </motion.div>
         </div>
