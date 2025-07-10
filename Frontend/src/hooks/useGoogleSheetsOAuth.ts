@@ -182,7 +182,7 @@ export const useGoogleSheetsOAuth = () => {
     initializeAuth();
   }, [fetchAllData]);
 
-  // Auto-refresh data every 2 minutes (only if signed in)
+  // Auto-refresh data every 20 seconds (only if signed in)
   useEffect(() => {
     if (!isSignedIn) return;
     
@@ -190,7 +190,7 @@ export const useGoogleSheetsOAuth = () => {
       if (isSignedIn) {
         fetchAllData();
       }
-    }, 120000); // Refresh every 2 minutes (120,000 ms)
+    }, 20000); // Refresh every 20 seconds
     
     return () => clearInterval(interval);
   }, [fetchAllData, isSignedIn]);

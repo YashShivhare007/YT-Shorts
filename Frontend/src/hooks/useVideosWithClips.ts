@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import googleSheetsOAuthService from '../services/googleSheetsOAuth';
 import type { VideoWithClips, ClipData } from '../services/googleSheetsOAuth';
 
-export const useVideosWithClips = (refreshInterval = 30000) => {
+export const useVideosWithClips = (refreshInterval = 20000) => {
   const [videosWithClips, setVideosWithClips] = useState<VideoWithClips[]>([]);
   const [completedClips, setCompletedClips] = useState<ClipData[]>([]);
   const [completedClipsByVideo, setCompletedClipsByVideo] = useState<VideoWithClips[]>([]);
