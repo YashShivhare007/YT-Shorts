@@ -332,27 +332,31 @@ def generate_transcript_background(drive_url, VideoId):
             return
             
         send_progress_update(VideoId, task_type, 'processing', 'Starting transcript generation...')
-        processor.setup_google_drive()
         
-        send_progress_update(VideoId, task_type, 'downloading', 'Downloading video from Drive...')
-        video_filename = f"{VideoId}_source.mp4"
-        video_path = processor.download_from_drive_fixed(drive_url, video_filename)
-
-        send_progress_update(VideoId, task_type, 'transcribing', 'Video downloaded, starting transcription...')
-        transcript_result = processor.transcribe_video(video_path, VideoId)
-
-        final_result = {
-            'VideoId': VideoId,
-            'status': 'completed',
-            'segments': transcript_result
-        }
-
-        send_progress_update(VideoId, task_type, 'completed', 'Transcript generation completed', result=final_result)
+        # This is the correct, existing method that handles download, audio extraction, and transcription.
+        result = processor.generate_transcript_from_drive(drive_url, VideoId)
+        
+        # Check the result from the processor
+        if result.get('status') == 'completed':
+            # The result from generate_transcript_from_drive is already well-formatted.
+            # We just need to extract the segments for the final payload.
+            final_result = {
+                'VideoId': VideoId,
+                'status': 'completed',
+                'segments': result.get('segments', [])
+            }
+            send_progress_update(VideoId, task_type, 'completed', 'Transcript generation completed', result=final_result)
+        else:
+            # If the processor returned a failure, propagate it.
+            error_message = result.get('error', 'Unknown error during transcript generation.')
+            send_progress_update(VideoId, task_type, 'failed', error_message)
+            logging.error(f"Transcript generation failed for {VideoId}: {error_message}")
 
     except Exception as e:
         error_message = f'Transcript generation failed: {str(e)}'
         send_progress_update(VideoId, task_type, 'failed', error_message)
         logging.error(f"Transcript generation failed for {VideoId}: {e}")
+
 
 def process_drive_clips_background_new(drive_url, VideoId, input_data):
     """Background processing for Drive clips with new input format"""
