@@ -243,10 +243,6 @@ const Dashboard = () => {
                     <p className="text-2xl font-bold text-gray-900">
                       {loading ? '...' : stat.value}
                     </p>
-                    <div className="flex items-center mt-1">
-                      <span className="text-sm text-green-600 font-medium">{stat.change}</span>
-                      <ArrowUpRight className="w-4 h-4 text-green-600 ml-1" />
-                    </div>
                   </div>
                   <div className={`p-3 rounded-lg ${stat.color}`}>
                     <Icon className="w-6 h-6 text-white" />
