@@ -46,7 +46,7 @@ except Exception as e:
 def send_progress_update(VideoId, task_type, status, message, result=None):
     """Send progress update to the status tracking system for a specific task."""
     if VideoId not in processing_status:
-        processing_status[VideoId] = {
+    processing_status[VideoId] = {
             'transcript': {'status': 'pending', 'message': 'Awaiting task'},
             'clips': {'status': 'pending', 'message': 'Awaiting task'}
         }
@@ -316,7 +316,7 @@ def process_drive_clips_background(drive_url, VideoId, clips):
         }
         
         send_progress_update(VideoId, task_type, 'completed', 'Processing completed successfully!', result=final_result)
-
+        
     except Exception as e:
         error_message = f'Processing failed: {str(e)}'
         send_progress_update(VideoId, task_type, 'failed', error_message)
@@ -342,7 +342,7 @@ def generate_transcript_background(drive_url, VideoId):
             # We just need to extract the segments for the final payload.
             final_result = {
                 'VideoId': VideoId,
-                'status': 'completed',
+            'status': 'completed',
                 'segments': result.get('segments', [])
             }
             send_progress_update(VideoId, task_type, 'completed', 'Transcript generation completed', result=final_result)
@@ -351,7 +351,7 @@ def generate_transcript_background(drive_url, VideoId):
             error_message = result.get('error', 'Unknown error during transcript generation.')
             send_progress_update(VideoId, task_type, 'failed', error_message)
             logging.error(f"Transcript generation failed for {VideoId}: {error_message}")
-
+        
     except Exception as e:
         error_message = f'Transcript generation failed: {str(e)}'
         send_progress_update(VideoId, task_type, 'failed', error_message)

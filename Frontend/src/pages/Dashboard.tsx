@@ -18,6 +18,7 @@ import { useGoogleSheetsOAuth } from '../hooks/useGoogleSheetsOAuth';
 import { Link } from 'react-router-dom';
 import DebugAuth from '../components/DebugAuth';
 import { getDriveEmbedUrl, getDriveDownloadUrl } from '../utils/drive';
+import { formatProcessingTime } from '../utils/formatTime';
 
 const getStatusProgress = (status: string): number => {
   if (!status) return 0;
@@ -151,7 +152,7 @@ const Dashboard = () => {
       color: 'bg-green-500',
     },
     {
-      title: 'Processing Time',
+      title: 'Total Processing Time',
       value: stats.avgProcessingTime,
       change: '-15%',
       icon: Clock,
@@ -338,7 +339,11 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-4">
                 {activeVideos.map((activity, index) => {
+                  // Remove previous processing time log
+                  // Add new log for raw startTime
+                  console.log('Dashboard Start Time:', activity.startTime);
                   const Icon = getActivityIcon(activity.status || '');
+                  const processingTime = formatProcessingTime(activity.startTime, activity.endTime);
                   return (
                     <div key={index} className="flex items-start space-x-3">
                       <div className={`p-2 rounded-lg ${getStatusColor(activity.status || '')}`}>
@@ -351,6 +356,10 @@ const Dashboard = () => {
                         <div className="mt-2">
                           <ProgressBar progress={getStatusProgress(activity.status || '')} />
                           <p className="text-xs text-gray-500 mt-1">{activity.status}</p>
+                          {/* NEW: Processing Time */}
+                          {activity.startTime && activity.endTime && (
+                            <p className="text-xs text-gray-500 mt-1">Processing Time: {processingTime}</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -399,14 +408,14 @@ const Dashboard = () => {
                       ></iframe>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {clip.category || 'Clip'} - {clip.clipId}
-                        </p>
-                        <p className="text-xs text-gray-500">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {clip.category || 'Clip'} - {clip.clipId}
+                      </p>
+                      <p className="text-xs text-gray-500">
                           {formatDuration(clip.start, clip.end)} • {clip.confidence && `${Math.round(clip.confidence * 100)}%`}
-                        </p>
-                      </div>
+                      </p>
+                    </div>
                       <div className="flex items-center space-x-2">
                         <a
                           href={getDriveDownloadUrl(clip.driveLink) || '#'}
@@ -418,15 +427,15 @@ const Dashboard = () => {
                         >
                           <Download className="w-4 h-4" />
                         </a>
-                        <a
-                          href={clip.driveLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 text-gray-400 hover:text-gray-600"
-                          title="Open in Google Drive"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
+                      <a
+                        href={clip.driveLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-gray-400 hover:text-gray-600"
+                        title="Open in Google Drive"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
                       </div>
                     </div>
                   </div>
@@ -434,12 +443,12 @@ const Dashboard = () => {
               </div>
             )}
             {completedClips.length > 3 && (
-              <Link 
-                to="/review" 
+                  <Link 
+                    to="/review" 
                 className="block text-center text-primary-600 hover:text-primary-700 text-sm py-2 mt-4"
-              >
-                View all {completedClips.length} clips →
-              </Link>
+                  >
+                    View all {completedClips.length} clips →
+                  </Link>
             )}
           </motion.div>
         </div>

@@ -7,10 +7,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -60,
-        760
+        180,
+        800
       ],
-      "id": "c8cabb21-a5cb-4600-891c-7f64933e33d6",
+      "id": "f80cc691-28cb-4be4-82a5-21947ce94fdb",
       "name": "Parse Transcript"
     },
     {
@@ -23,14 +23,14 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        340,
-        840
+        580,
+        880
       ],
-      "id": "2ed2ff23-3100-4f09-8749-bf64b4f89b33",
+      "id": "852a14f7-8598-4199-a0cd-8e2ccfd49aa1",
       "name": "Store in MongoDB",
       "credentials": {
         "mongoDb": {
-          "id": "ktCidLc7iOWSZBr6",
+          "id": "rYwGIXvBZU3uZuLg",
           "name": "MongoDB account"
         }
       }
@@ -42,10 +42,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        -400,
-        -20
+        -160,
+        20
       ],
-      "id": "22e4e648-f62d-48cb-b209-fb66475c736b",
+      "id": "434bdb10-f3f8-4192-9f95-7bfdb5c473bc",
       "name": "Structured Output Parser"
     },
     {
@@ -58,10 +58,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        -540,
-        100
+        -300,
+        140
       ],
-      "id": "dd7b4199-59ce-45c3-9b7f-8063613118c8",
+      "id": "8d76662d-3b4e-4a10-a2eb-dd04aa6f9eab",
       "name": "Trend Analyser"
     },
     {
@@ -69,10 +69,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -240,
-        100
+        0,
+        140
       ],
-      "id": "b23ca440-f8a4-4d43-bda8-01e0a403c300",
+      "id": "3fca800d-8662-4e69-958a-a4a1893e495e",
       "name": "Merge"
     },
     {
@@ -82,10 +82,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -400,
-        320
+        -160,
+        360
       ],
-      "id": "a88f12de-d8d3-4aaa-9285-3e4f120531f6",
+      "id": "81412bb1-61d1-4df1-9e5e-8aad40716ad8",
       "name": "start,end,text"
     },
     {
@@ -95,10 +95,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -540,
-        320
+        -300,
+        360
       ],
-      "id": "4f187d67-ff79-4c8a-bad4-7c5894c3eea4",
+      "id": "19c2502a-f179-41b1-80b2-1b647c9ddc2d",
       "name": "preprocessing transcript"
     },
     {
@@ -108,10 +108,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -80,
-        100
+        160,
+        140
       ],
-      "id": "f623e843-86bc-4e93-87f9-8870ff649584",
+      "id": "4234d350-69ee-4001-ba4b-7d8c466300d7",
       "name": "Code"
     },
     {
@@ -119,10 +119,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -220,
-        320
+        20,
+        360
       ],
-      "id": "069f6f2a-922b-4f6d-a65f-98f8e01e320b",
+      "id": "18ee723d-8c15-4d49-be46-576997b9e0b3",
       "name": "Raw plus clipped"
     },
     {
@@ -132,10 +132,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -80,
-        320
+        160,
+        360
       ],
-      "id": "764faadd-9104-4d0b-b388-7e7440dce4b9",
+      "id": "28b61339-b98a-46f5-97f1-99b8451ee11b",
       "name": "Expand Context"
     },
     {
@@ -145,10 +145,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -540,
-        580
+        -300,
+        620
       ],
-      "id": "bf0377b7-62e2-4eab-b6be-527482eb03e4",
+      "id": "aab0bb13-86f5-4ac3-8a78-201b93b272a3",
       "name": "Extracting Link Id",
       "alwaysOutputData": true
     },
@@ -157,10 +157,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -80,
-        580
+        160,
+        620
       ],
-      "id": "c677cc13-2b18-4753-bb3a-cc2635d477f5",
+      "id": "3d9e3844-9227-4093-ac1f-45b4bc9c4d81",
       "name": "Final Output with VideoId"
     },
     {
@@ -170,10 +170,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        340,
-        580
+        580,
+        620
       ],
-      "id": "00a3c95a-628a-47c6-ac3c-3d59f47e3a1d",
+      "id": "c2a1da52-d9a3-475c-a799-f023382fbf85",
       "name": "Setting up Payload"
     },
     {
@@ -181,10 +181,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -1160,
-        1140
+        -920,
+        1180
       ],
-      "id": "acb8ae0d-2f07-443c-89cf-d06c417bdf57",
+      "id": "92aa967d-048e-4fb3-93f1-7132d75dc17d",
       "name": "Merge1"
     },
     {
@@ -216,10 +216,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        40,
-        1120
+        280,
+        1160
       ],
-      "id": "eef1b76c-7e69-46ea-8d37-c4c95234fbd7",
+      "id": "8ae00fee-8019-44ba-805f-3fd76f2bf306",
       "name": "Is Completed?"
     },
     {
@@ -229,10 +229,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        60,
-        320
+        300,
+        360
       ],
-      "id": "47292c54-38ca-485a-abfc-e0a8c2f4a9e6",
+      "id": "317815d9-d403-41ff-a48d-bf1af82d7784",
       "name": "Prepare Initial Clip Rows"
     },
     {
@@ -242,10 +242,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        60,
-        580
+        300,
+        620
       ],
-      "id": "025e97b9-b1b0-462f-8e37-889c26edb33f",
+      "id": "3a70c411-7b8f-4b3a-9b5d-52352a179e5b",
       "name": "Prepare Polished Data"
     },
     {
@@ -411,14 +411,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        300,
-        320
+        540,
+        360
       ],
-      "id": "440281de-5e9a-4630-8cc3-c2db21980c61",
+      "id": "722d1c7f-418e-4c1a-af46-bad014303649",
       "name": "Append Initial Clip Rows",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -601,14 +601,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        200,
-        580
+        440,
+        620
       ],
-      "id": "278fde13-60c4-4f5f-b889-44b39cb022b7",
+      "id": "8a5502d0-837c-420c-93cc-431212daf99f",
       "name": "Update with Polished Data",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -620,10 +620,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
-        1060
+        420,
+        1100
       ],
-      "id": "838f4726-38a4-4953-95cc-83bf42e1ec37",
+      "id": "3c0012a6-79c2-4e4c-a190-73adb42a9680",
       "name": "Prepare Final Drive Links"
     },
     {
@@ -633,10 +633,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1040,
-        1140
+        -800,
+        1180
       ],
-      "id": "5a69d0b4-59c0-4959-92e4-08cdbcdcdf73",
+      "id": "e691d663-5dee-41c5-aa93-986cfbb4626d",
       "name": "Single JSON2"
     },
     {
@@ -647,10 +647,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1040,
-        100
+        -800,
+        140
       ],
-      "id": "28cbaf69-b40d-4d1e-9dfa-21888f45d971",
+      "id": "2ee7c12e-257c-4bd8-8c0d-c3c73f23672b",
       "name": "Extract ID"
     },
     {
@@ -660,10 +660,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        -920,
-        100
+        -680,
+        140
       ],
-      "id": "a22cf80c-3794-4b27-af6d-23a328b98bcd",
+      "id": "9abed088-c93c-47cd-8443-516d191a6338",
       "name": "Wait",
       "webhookId": "f678025a-d71b-4690-b577-6c81d69ab8ee"
     },
@@ -701,10 +701,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -400,
-        920
+        -160,
+        960
       ],
-      "id": "0480c5e6-82f8-4e0e-9ece-d62bcf741ed0",
+      "id": "62c53727-f405-4ade-8621-1fc1f74f6b1f",
       "name": "Get Transcript(GDrive)"
     },
     {
@@ -736,10 +736,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        20,
-        920
+        260,
+        960
       ],
-      "id": "94b6d4f7-8a86-42a1-858f-a99885352b86",
+      "id": "34784a80-b839-468c-9f87-a89a6e74508f",
       "name": "Is Completed?1"
     },
     {
@@ -767,10 +767,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -400,
-        760
+        -160,
+        800
       ],
-      "id": "1f7ed08b-c321-428d-90df-6ac983291db5",
+      "id": "2996ea2c-5c6f-4791-b3a7-d7e8ace9ca64",
       "name": "Get Transcript (YT)"
     },
     {
@@ -780,10 +780,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        -260,
-        460
+        -20,
+        500
       ],
-      "id": "28e8ac93-f44b-48cf-8e3f-f4354b0d608a",
+      "id": "cd04aa54-f075-4498-bc8d-3aa63d3328f6",
       "name": "Structured Output Parser4"
     },
     {
@@ -791,10 +791,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -920,
-        1140
+        -680,
+        1180
       ],
-      "id": "74422853-8798-44c8-878e-1f05324791e4",
+      "id": "c4d8a4f4-51e1-4e35-9e7b-dc7582c23b46",
       "name": "Merge2"
     },
     {
@@ -804,10 +804,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -800,
-        1140
+        -560,
+        1180
       ],
-      "id": "2b5a360f-0c75-41bd-934f-2f3efc78c4bf",
+      "id": "46b56f96-9e77-41d3-aa0d-5c11bd5a1346",
       "name": "Code2"
     },
     {
@@ -817,10 +817,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -1160,
-        100
+        -920,
+        140
       ],
-      "id": "de958b34-41e1-42c7-b9ff-649f483a3860",
+      "id": "5abc3530-3a77-4624-911c-14754118ba0c",
       "name": "Loop Over Items"
     },
     {
@@ -861,10 +861,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -400,
-        1060
+        -160,
+        1100
       ],
-      "id": "dac88a67-3fbf-4b0c-9e53-b6b4db18d2fa",
+      "id": "846009c6-1542-430f-861b-f0108439dc0a",
       "name": "Start Processing(YT))"
     },
     {
@@ -905,10 +905,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -400,
-        1200
+        -160,
+        1240
       ],
-      "id": "872f0402-546c-45f9-8a03-42d550f2fe90",
+      "id": "d809d023-53df-47a0-a575-65c3b5f3f0a6",
       "name": "Start Processing(GDrive)"
     },
     {
@@ -919,14 +919,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
       "typeVersion": 1,
       "position": [
-        -540,
-        -20
+        -300,
+        20
       ],
-      "id": "7fd8afb9-66e8-4e05-ab18-aa8b06e0b69b",
+      "id": "4c89de6f-3b82-4f23-b748-ec9a0016d7e3",
       "name": "Agent-1",
       "credentials": {
         "azureOpenAiApi": {
-          "id": "LfKAswmZa0IoGC5f",
+          "id": "kLsVGXa6waqTWnNG",
           "name": "GPT-4.1"
         }
       }
@@ -939,14 +939,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
       "typeVersion": 1,
       "position": [
-        80,
-        -20
+        320,
+        20
       ],
-      "id": "94b13d22-e688-465f-9f31-fdb026de2718",
+      "id": "082f6592-0c8d-4b7a-9bf3-abb54e7d1acf",
       "name": "Agent-2",
       "credentials": {
         "azureOpenAiApi": {
-          "id": "LfKAswmZa0IoGC5f",
+          "id": "kLsVGXa6waqTWnNG",
           "name": "GPT-4.1"
         }
       }
@@ -959,14 +959,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
       "typeVersion": 1,
       "position": [
-        -380,
-        460
+        -140,
+        500
       ],
-      "id": "d215b7dc-54f2-411d-83df-df88a6ae19ea",
+      "id": "1f3576f7-1cc1-4cb7-a2ac-51ab1c445ba0",
       "name": "Agent-3",
       "credentials": {
         "azureOpenAiApi": {
-          "id": "LfKAswmZa0IoGC5f",
+          "id": "kLsVGXa6waqTWnNG",
           "name": "GPT-4.1"
         }
       }
@@ -981,10 +981,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        -400,
-        580
+        -160,
+        620
       ],
-      "id": "1ef70a6f-c64d-4796-ab35-1d1163ff5a0c",
+      "id": "d25166f5-5325-4626-acd5-db287ca9f55d",
       "name": "Polished Timestamps"
     },
     {
@@ -997,10 +997,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        60,
-        100
+        300,
+        140
       ],
-      "id": "a65ab796-8055-44e9-bbd3-ef0c38f58eec",
+      "id": "d89b12cf-7cf2-4650-8ab3-a2a083ce093d",
       "name": "Timestamps"
     },
     {
@@ -1030,10 +1030,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -540,
-        840
+        -300,
+        880
       ],
-      "id": "be168810-7e91-492a-b09d-c9feb21370de",
+      "id": "f0bd8d17-ac66-4925-92c5-0002f95f51a8",
       "name": "If YT-1"
     },
     {
@@ -1064,10 +1064,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -540,
-        1140
+        -300,
+        1180
       ],
-      "id": "37f4ee51-80f4-4899-aca4-7d8ccc614044",
+      "id": "47cc89f9-73e9-4470-b5d5-81187b14db53",
       "name": "If YT-2",
       "alwaysOutputData": false
     },
@@ -1078,10 +1078,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
-        920
+        420,
+        960
       ],
-      "id": "f37f4fc7-163d-40c9-896a-6daeab74026c",
+      "id": "8084e589-6f87-48c3-9815-8bd99e81898d",
       "name": "DB Payload-2"
     },
     {
@@ -1091,10 +1091,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
-        760
+        420,
+        800
       ],
-      "id": "a263efdc-288a-4e9b-a920-58445bdc25fe",
+      "id": "dd6eda8e-1606-4871-ab11-f2036944eb40",
       "name": "DB Payload-1"
     },
     {
@@ -1272,14 +1272,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        340,
-        1060
+        580,
+        1100
       ],
-      "id": "469d14f7-c7e2-40f2-9ec2-0aea88017085",
+      "id": "b0b9c759-30c2-4f76-a625-61fff48aa14c",
       "name": "Drive Links",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -1293,10 +1293,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -1440,
-        20
+        -1200,
+        60
       ],
-      "id": "20274913-d782-4fdd-903f-d667bce04013",
+      "id": "cd38143a-b322-44cf-b67b-140c30968d48",
       "name": "Webhook",
       "webhookId": "196513a7-6d40-441e-a316-dffcd34c3e85"
     },
@@ -1321,14 +1321,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -1320,
-        100
+        -1080,
+        140
       ],
-      "id": "fb98aba7-6ca5-4314-941a-5aaf207a69b0",
+      "id": "7f9eb06f-87e8-4e39-9956-2846bb6347ef",
       "name": "Get row(s) in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -1340,10 +1340,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        340,
-        1200
+        580,
+        1240
       ],
-      "id": "352baa6a-516f-49e2-8a87-62a604958667",
+      "id": "42fcc2bc-7f4a-4a6e-be06-1ffa99ce85b4",
       "name": "Wait1",
       "webhookId": "c6f4e249-172b-4bf0-9607-3be0315dc315"
     },
@@ -1374,10 +1374,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -800,
-        480
+        -560,
+        520
       ],
-      "id": "230dab01-3ef0-4934-9d24-32e5d708fc95",
+      "id": "579b2f5d-aa78-4550-b9a7-a191f606dd5a",
       "name": "If"
     },
     {
@@ -1389,15 +1389,15 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -1160,
-        480
+        -920,
+        520
       ],
-      "id": "390bdb83-dba4-478b-89f1-cec39f2b9aef",
+      "id": "c27bf407-2022-4f75-b311-b06c42add07f",
       "name": "Data Exists?",
       "alwaysOutputData": true,
       "credentials": {
         "mongoDb": {
-          "id": "ktCidLc7iOWSZBr6",
+          "id": "rYwGIXvBZU3uZuLg",
           "name": "MongoDB account"
         }
       }
@@ -1409,10 +1409,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -920,
-        480
+        -680,
+        520
       ],
-      "id": "0317c7d0-51c7-47d9-8198-88a6ea905f7a",
+      "id": "159e3d2c-d40a-4e3a-bf23-4ac3ff1f9761",
       "name": "Has Data?"
     },
     {
@@ -1420,10 +1420,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -1040,
-        480
+        -800,
+        520
       ],
-      "id": "5c47ad65-8196-4e44-be97-a8e75de36114",
+      "id": "c01302c8-a094-4fc6-83d0-d1e2981c4cb7",
       "name": "Merge3"
     },
     {
@@ -1433,10 +1433,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        200,
-        -20
+        440,
+        20
       ],
-      "id": "51604fe6-b1da-4ab5-a02d-e3004f144851",
+      "id": "ec9a9767-575d-409c-8cc5-0775b56f8ae6",
       "name": "Structured Output Parser2"
     },
     {
@@ -1446,10 +1446,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        340,
-        100
+        580,
+        140
       ],
-      "id": "b0c49644-20c6-410a-b2fd-11dc760476f3",
+      "id": "041b77c8-eeb0-4930-912b-d18ba862be70",
       "name": "1st Screening"
     },
     {
@@ -1457,10 +1457,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -1440,
-        160
+        -1200,
+        200
       ],
-      "id": "9c1bd736-f170-4e0b-9bb7-2585c5fd98b4",
+      "id": "b36a96b8-ab92-4b78-9ada-054f4fe8e592",
       "name": "When clicking ‘Execute workflow’"
     },
     {
@@ -1482,10 +1482,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -120,
-        920
+        120,
+        960
       ],
-      "id": "53d4c971-6b7c-41da-b987-f91c5595c0b5",
+      "id": "7792f9f3-1a0a-4e06-a3e0-829caf76fdaf",
       "name": "Transcript Status",
       "alwaysOutputData": true,
       "retryOnFail": true
@@ -1509,41 +1509,13 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -120,
-        1120
+        120,
+        1160
       ],
-      "id": "2e636cc7-dcb9-4488-bacb-0fb541bc394a",
+      "id": "5b3a9d21-3a84-42e2-9d2f-cf11322b0ac1",
       "name": "Clips Status",
       "alwaysOutputData": true,
       "retryOnFail": true
-    },
-    {
-      "parameters": {
-        "amount": 50
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        -260,
-        920
-      ],
-      "id": "58c6bf91-688f-4907-87e0-c07a569b7bba",
-      "name": "Wait 50 Seconds",
-      "webhookId": "80a865ed-32c1-4012-b168-7119cc44182e"
-    },
-    {
-      "parameters": {
-        "amount": 50
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        -260,
-        1120
-      ],
-      "id": "63259ea0-6b1b-4710-951a-98001ab1ca09",
-      "name": "Wait 50 sec",
-      "webhookId": "80a865ed-32c1-4012-b168-7119cc44182e"
     },
     {
       "parameters": {
@@ -1719,14 +1691,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        300,
-        440
+        540,
+        480
       ],
-      "id": "5d812eab-1102-479a-8b92-e7388af8512e",
+      "id": "817b74f6-aae6-4903-a07f-e9f0c4ca18a4",
       "name": "Polishing Timestamps",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -1754,7 +1726,8 @@
             "VideoId": "={{ $json.VideoId }}",
             "Video Link": "={{ $json.VideoLink }}",
             "Type": "={{ $json.type }}",
-            "Status": "Analysing Trend"
+            "Status": "Analysing Trend",
+            "Start Time": "={{ $now }}"
           },
           "matchingColumns": [
             "Video Link"
@@ -1901,12 +1874,32 @@
               "removed": true
             },
             {
+              "id": "Start Time",
+              "displayName": "Start Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "End Time",
+              "displayName": "End Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
               "id": "row_number",
               "displayName": "row_number",
               "required": false,
               "defaultMatch": false,
               "display": true,
-              "type": "string",
+              "type": "number",
               "canBeUsedToMatch": true,
               "readOnly": true,
               "removed": true
@@ -1920,14 +1913,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -800,
-        100
+        -560,
+        140
       ],
-      "id": "dedeff42-425e-4829-a08a-3a5a68f59610",
+      "id": "5e3132a4-0682-4843-a15b-ca9fb1239b2e",
       "name": "Analysing Trend",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -2106,14 +2099,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -240,
-        -40
+        0,
+        0
       ],
-      "id": "e640828c-904b-46b1-ae25-de289272b66e",
+      "id": "0dd18a7b-0ee1-4a01-b950-c72b5ec43c47",
       "name": "Generating Transcript",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -2293,14 +2286,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -80,
-        -40
+        160,
+        0
       ],
-      "id": "69c48ef8-8d40-4c9e-bd42-a98580dcbf20",
+      "id": "5ca86a9b-8b02-42e6-9001-a9ecf1ac2908",
       "name": "Extracting Timestamps",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -2479,14 +2472,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -540,
-        1000
+        -300,
+        1040
       ],
-      "id": "c23fb601-a82f-4f58-9843-92d27d0e8851",
+      "id": "82f2a80f-f13c-40c6-a870-809839861888",
       "name": "Clipping Videos",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
@@ -2512,7 +2505,8 @@
           "mappingMode": "defineBelow",
           "value": {
             "Status": "Analysis complete",
-            "VideoId": "={{ $('If YT-2').item.json.VideoId }}"
+            "VideoId": "={{ $('If YT-2').item.json.VideoId }}",
+            "End Time": "={{ $now }}"
           },
           "matchingColumns": [
             "VideoId"
@@ -2647,12 +2641,32 @@
               "canBeUsedToMatch": true
             },
             {
+              "id": "Start Time",
+              "displayName": "Start Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "End Time",
+              "displayName": "End Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
               "id": "row_number",
               "displayName": "row_number",
               "required": false,
               "defaultMatch": false,
               "display": true,
-              "type": "string",
+              "type": "number",
               "canBeUsedToMatch": true,
               "readOnly": true,
               "removed": true
@@ -2666,17 +2680,45 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        180,
-        1200
+        420,
+        1240
       ],
-      "id": "a1f89569-ddb1-4f78-ba9a-e9cba410d2ae",
+      "id": "bd55ac60-3ff8-4ca8-9b26-ec76b7193a7e",
       "name": "Analysis Complete",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "1rF2ovT4P4qkzjyH",
+          "id": "yPyx4oxzg7hIkj6D",
           "name": "Google Sheets account"
         }
       }
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -20,
+        1160
+      ],
+      "id": "230c0ea5-af8c-4aef-b303-99532f0a9ca5",
+      "name": "Wait 10 sec",
+      "webhookId": "80a865ed-32c1-4012-b168-7119cc44182e"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -20,
+        960
+      ],
+      "id": "6117d215-771d-488b-938c-00f82137515c",
+      "name": "Wait 10 Seconds",
+      "webhookId": "80a865ed-32c1-4012-b168-7119cc44182e"
     }
   ],
   "connections": {
@@ -2875,7 +2917,7 @@
         ],
         [
           {
-            "node": "Wait 50 sec",
+            "node": "Wait 10 sec",
             "type": "main",
             "index": 0
           },
@@ -2967,7 +3009,7 @@
       "main": [
         [
           {
-            "node": "Wait 50 Seconds",
+            "node": "Wait 10 Seconds",
             "type": "main",
             "index": 0
           }
@@ -2985,7 +3027,7 @@
         ],
         [
           {
-            "node": "Wait 50 Seconds",
+            "node": "Wait 10 Seconds",
             "type": "main",
             "index": 0
           }
@@ -3057,7 +3099,7 @@
       "main": [
         [
           {
-            "node": "Wait 50 sec",
+            "node": "Wait 10 sec",
             "type": "main",
             "index": 0
           }
@@ -3068,7 +3110,7 @@
       "main": [
         [
           {
-            "node": "Wait 50 sec",
+            "node": "Wait 10 sec",
             "type": "main",
             "index": 0
           }
@@ -3186,11 +3228,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Drive Links": {
-      "main": [
-        []
       ]
     },
     "Webhook": {
@@ -3337,33 +3374,6 @@
         ]
       ]
     },
-    "Wait 50 Seconds": {
-      "main": [
-        [
-          {
-            "node": "Transcript Status",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait 50 sec": {
-      "main": [
-        [
-          {
-            "node": "Clips Status",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Polishing Timestamps": {
-      "main": [
-        []
-      ]
-    },
     "Analysing Trend": {
       "main": [
         [
@@ -3395,6 +3405,28 @@
         [
           {
             "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10 sec": {
+      "main": [
+        [
+          {
+            "node": "Clips Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10 Seconds": {
+      "main": [
+        [
+          {
+            "node": "Transcript Status",
             "type": "main",
             "index": 0
           }
@@ -3455,6 +3487,6 @@
   },
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "f6f2837186bfdb0d4e9e30df2125803da0b670f268415eb3e2c748c9fc339a05"
+    "instanceId": "ba6654f7567c6d5bef382b9c5ef983a1d6d72df8b941b686b49860a5d6ac07d2"
   }
 }

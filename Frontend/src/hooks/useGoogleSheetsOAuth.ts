@@ -53,25 +53,25 @@ export const useGoogleSheetsOAuth = () => {
         videosData,
         statusData,
         clipsData,
-        activityData
+        videosWithClipsData
       ] = await Promise.all([
         googleSheetsOAuthService.getAllVideos(),
         googleSheetsOAuthService.getProcessingStatus(),
         googleSheetsOAuthService.getCompletedClips(),
-        googleSheetsOAuthService.getActiveVideos()
+        googleSheetsOAuthService.getVideosWithClips()
       ]);
 
-      console.log('�� Fetched data:', {
+      console.log(' Fetched data:', {
         videos: videosData.length,
         status: statusData,
         clips: clipsData.length,
-        activity: activityData.length
+        activity: videosWithClipsData.length
       });
 
       setVideos(videosData);
       setProcessingStatus(statusData);
       setCompletedClips(clipsData);
-      setActiveVideos(activityData);
+      setActiveVideos(videosWithClipsData);
     } catch (err) {
       console.error('Error fetching data:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -131,7 +131,43 @@ export const useGoogleSheetsOAuth = () => {
   const getStats = useCallback(() => {
     // Use processing status directly (already calculated from video metadata rows)
     const totalClips = completedClips.length;
-    const avgProcessingTime = '2.3 min'; // This could be calculated from actual data
+    
+    // Calculate total processing time from completed videos
+    const completedVideos = activeVideos.filter(video => 
+      video.status?.toLowerCase() === 'analysis complete' && 
+      video.startTime && 
+      video.endTime
+    );
+    
+    let totalProcessingTime = 0;
+    completedVideos.forEach(video => {
+      const start = Date.parse(video.startTime);
+      const end = Date.parse(video.endTime);
+      if (!isNaN(start) && !isNaN(end) && end > start) {
+        totalProcessingTime += Math.floor((end - start) / 1000); // seconds
+      }
+    });
+    
+    // Format total processing time
+    const formatTotalTime = (seconds: number) => {
+      if (seconds === 0) return 'N/A';
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      
+      if (hours > 0) {
+        return `${hours}h ${minutes}m ${secs}s`;
+      } else if (minutes > 0) {
+        return `${minutes}m ${secs}s`;
+      } else {
+        return `${secs}s`;
+      }
+    };
+    
+    const avgProcessingTime = completedVideos.length > 0 
+      ? formatTotalTime(totalProcessingTime)
+      : 'N/A';
+    
     const successRate = processingStatus.total > 0 
       ? Math.round((processingStatus.completed / processingStatus.total) * 100) 
       : 0;
@@ -142,7 +178,7 @@ export const useGoogleSheetsOAuth = () => {
       avgProcessingTime,
       successRate: `${successRate}%`
     };
-  }, [completedClips, processingStatus]);
+  }, [completedClips, processingStatus, activeVideos]);
 
   // Listen for sign-in changes
   useEffect(() => {

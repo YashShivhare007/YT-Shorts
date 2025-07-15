@@ -1212,13 +1212,13 @@ color: #1B2124;
 
     fetchAndActivate(firebaseRemoteConfig)
     .then(() => {
-        console.log("Remote Config activated",firebaseRemoteConfig);
+        // console.log("Remote Config activated",firebaseRemoteConfig);
         const value = getValue(firebaseRemoteConfig, 'authDomain');
         // Retrieve the value of a Remote Config parameter
         // const value1 = firebaseRemoteConfig.getValue("authDomain")._value || firebaseRemoteConfig.defaultConfig["authDomain"];
-        console.log('fetchAndActivate',value.asString()); // Use .
+        // console.log('fetchAndActivate',value.asString()); // Use .
         window.remoteConfig = firebaseRemoteConfig;
-        console.log('RemoteConfig initialized and activated');
+        // console.log('RemoteConfig initialized and activated');
         // // Example: Display the value on the webpage
         // document.getElementById("configValue").innerText = value;
     })
@@ -2732,12 +2732,12 @@ else if (pageType == "batch_description")
 pageName = "desc_page";
 }
 // login_page/ home_page / desc_page / blog_home_page/listing_page
-console.log( pageName ,'pageName');
-console.log(  pageType,'pageType')
-console.log(  referred_from,'referred_from')
-console.log(   page_exam,'page_exam')
-console.log(  page_class,'page_class')
-console.log(   business_unit,'business_unit')
+// console.log( pageName ,'pageName');
+// console.log(  pageType,'pageType')
+// console.log(  referred_from,'referred_from')
+// console.log(   page_exam,'page_exam')
+// console.log(  page_class,'page_class')
+// console.log(   business_unit,'business_unit')
 
 
 // pageReferrer:  referred_from,
@@ -2760,7 +2760,7 @@ const capitalizeFirstLetter = (str) => {
 };
 function eventLogger(eventName,data ) {
         if(window.analytics){
-        console.log(window.analytics,'analytics');
+        // console.log(window.analytics,'analytics');
         logEvent(window.analytics, eventName, {
                 ...data
         })
@@ -2769,7 +2769,7 @@ function eventLogger(eventName,data ) {
 
 $('#btnlogin').click(function () {
                 loginCommon();
-                console.log(window.firebaseRemoteConfig,'window.firebaseRemoteConfig');
+                // console.log(window.firebaseRemoteConfig,'window.firebaseRemoteConfig');
 });
 
 const url = 'study/batches/batch-overview';

@@ -13,6 +13,7 @@ import {
 import { useVideosWithClips } from '../hooks/useVideosWithClips';
 import type { ClipData, VideoWithClips } from '../services/googleSheetsOAuth';
 import { getDriveEmbedUrl, getDriveDownloadUrl } from '../utils/drive';
+import { formatProcessingTime } from '../utils/formatTime';
 
 const ClipReview = () => {
   const [selectedClip, setSelectedClip] = useState<string | null>(null);
@@ -248,10 +249,12 @@ const ClipReview = () => {
   );
 
   const renderVideoSection = (video: VideoWithClips) => {
+    // Add new log for raw startTime
+    console.log('ClipReview Start Time:', video.startTime);
     const completedClips = video.clips.filter(clip => clip.driveLink && clip.driveLink !== '');
     const allVideoClips = video.clips; // Show ALL clips for this video
     const isExpanded = expandedVideos.has(video.VideoId);
-    
+    const processingTime = formatProcessingTime(video.startTime, video.endTime);
     return (
       <motion.div
         key={video.VideoId}
@@ -280,6 +283,13 @@ const ClipReview = () => {
                     <BarChart3 className="w-4 h-4" />
                     <span>{completedClips.length}/{allVideoClips.length} clips completed</span>
                   </span>
+                  {/* NEW: Processing Time */}
+                  {video.startTime && video.endTime && (
+                    <span className="flex items-center space-x-1">
+                      <Clock className="w-4 h-4" />
+                      <span>Processing Time: {processingTime}</span>
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

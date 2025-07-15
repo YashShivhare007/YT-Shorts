@@ -1309,7 +1309,7 @@ class VideoProcessor:
 
 वीडियो ID / Video ID: {transcript_data['VideoId']}
 बनाया गया / Created: {transcript_data['created_at']}
-मॉडल / Model: {transcript_data['model_info']['model_name']} 
+मॉडल / Model: {transcript_data['model_info']['model_name']}
 भाषा / Language: हिंदी (Hindi)
 गुणवत्ता / Quality: {transcript_data['processing_info']['total_segments']} segments
 

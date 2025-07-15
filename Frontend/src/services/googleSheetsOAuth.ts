@@ -19,6 +19,8 @@ export interface VideoRow {
   editorJustification?: string;
   driveLink?: string;
   confidence?: number;
+  startTime?: string;      // NEW: Processing start time
+  endTime?: string;        // NEW: Processing end time
 }
 
 export interface ClipData {
@@ -40,10 +42,10 @@ export interface VideoWithClips {
   VideoId: string;
   transcript: string;
   status: string;
-  
-  // Attached clips (from clip rows)
+  // NEW: Processing time fields
+  startTime: string;
+  endTime: string;
   clips: ClipData[];
-  
   // Computed properties
   totalClips: number;
   completedClips: number;
@@ -119,15 +121,13 @@ class GoogleSheetsOAuthService {
         majorDimension: 'ROWS'
       };
 
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:N:append?valueInputOption=RAW`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:P:append?valueInputOption=RAW`;
       
       const response = await this.makeAuthenticatedRequest(url, {
         method: 'POST',
         body: JSON.stringify(requestBody)
       });
       
-      console.log('Video links appended successfully:', response);
-
       // Trigger n8n workflow immediately after successful upload
       await this.triggerN8nWorkflow(urls);
       
@@ -141,7 +141,8 @@ class GoogleSheetsOAuthService {
   private async triggerN8nWorkflow(urls: string[]): Promise<void> {
     try {
       // Get webhook URL from config
-      const n8nWebhookUrl = config.n8n.webhookUrl;
+      // const n8nWebhookUrl = config.n8n.webhookUrl; // Commented out: use hardcoded URL for now
+      const n8nWebhookUrl = 'https://primary-production-0ec4.up.railway.app/webhook/trigger-video-processing';
       
       // Simple trigger payload - the workflow will use Google Sheets node to read actual data
       const payload = {
@@ -150,8 +151,6 @@ class GoogleSheetsOAuthService {
         timestamp: new Date().toISOString(),
         videoCount: urls.length
       };
-
-      console.log('Triggering n8n workflow with payload:', payload);
 
       const response = await fetch(n8nWebhookUrl, {
         method: 'POST',
@@ -162,9 +161,7 @@ class GoogleSheetsOAuthService {
       });
 
       if (response.ok) {
-        console.log('n8n workflow triggered successfully');
         const responseText = await response.text();
-        console.log('n8n response:', responseText);
       } else {
         const errorText = await response.text();
         console.warn('Failed to trigger n8n workflow:', response.status, response.statusText, errorText);
@@ -181,7 +178,7 @@ class GoogleSheetsOAuthService {
     await this.initialize();
 
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:N`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:P`;
       const response = await this.makeAuthenticatedRequest(url);
 
       const rows = response.values || [];
@@ -214,7 +211,7 @@ class GoogleSheetsOAuthService {
     await this.initialize();
 
     try {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:N`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:P`;
       const response = await this.makeAuthenticatedRequest(url);
 
       const rows = response.values || [];
@@ -234,10 +231,12 @@ class GoogleSheetsOAuthService {
            // This is a video metadata row (has Video Link but no Clip ID)
            videoRows.push({
              videoLink: row[0] || '',
-             type: row[1] || '',        // NEW: Type column
-             VideoId: row[2] || '',     // CORRECTED: was row[1]
-             transcript: row[3] || '',  // CORRECTED: was row[2]
-             status: row[4] || ''       // CORRECTED: was row[3]
+             type: row[1] || '',        
+             VideoId: row[2] || '',     
+             transcript: row[3] || '',  
+             status: row[4] || '',      
+             startTime: (row[4] && row[4].toLowerCase() === 'analysis complete') ? (row[14] || '') : '',  // Only if status is complete
+             endTime: (row[4] && row[4].toLowerCase() === 'analysis complete') ? (row[15] || '') : '',    // Only if status is complete
            });
          } else if (hasClipId && !hasVideoLink) {
            // This is a clip data row (has Clip ID but no Video Link)
@@ -254,7 +253,6 @@ class GoogleSheetsOAuthService {
            });
          }
        });
-
       // Group clips by VideoId (extracted from clipId)
       const clipsByVideoId = new Map<string, ClipData[]>();
       
@@ -296,46 +294,27 @@ class GoogleSheetsOAuthService {
         clips.sort((a, b) => a.clipNumber - b.clipNumber);
       });
 
-      console.log('🔍 Debug - Video to Clip Mapping:');
-      console.log(`📹 Found ${videoRows.length} video rows`);
-      console.log(`🎬 Found ${clipRows.length} clip rows`);
-      console.log(`🗂️ Mapped clips to ${clipsByVideoId.size} unique video IDs`);
-      
-      // Debug the mapping
-      clipsByVideoId.forEach((clips, VideoId) => {
-        console.log(`  📹 Video "${VideoId}": ${clips.length} clips`);
-      });
-
       // Map videos with their clips
       const videosWithClips: VideoWithClips[] = videoRows
         .map(video => {
           // Use VideoId if it exists, otherwise this video won't have clips mapped yet
           const clips = video.VideoId ? clipsByVideoId.get(video.VideoId) || [] : [];
           const completedClips = clips.filter(clip => clip.driveLink && clip.driveLink !== '').length;
-          
           // Use a temporary ID for the key if VideoId is not available yet
           const displayId = video.VideoId || video.videoLink.slice(-15);
-          
-          console.log(`🎯 Mapping video "${displayId}": found ${clips.length} clips (${completedClips} completed)`);
-          
           return {
             videoLink: video.videoLink,
             VideoId: displayId,
             transcript: video.transcript || '',
             status: video.status || '',
+            startTime: video.startTime || '',
+            endTime: video.endTime || '',
             clips: clips,
             totalClips: clips.length,
             completedClips: completedClips,
             hasClips: clips.length > 0
           };
         });
-
-      console.log('Debug - Videos with clips:', videosWithClips.map(v => ({
-        VideoId: v.VideoId,
-        status: v.status,
-        totalClips: v.totalClips,
-        completedClips: v.completedClips
-      })));
 
       return videosWithClips;
     } catch (error) {
@@ -348,7 +327,7 @@ class GoogleSheetsOAuthService {
   async getProcessingStatus(): Promise<ProcessingStatus> {
     try {
       // Get raw data directly from Google Sheets
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:N`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:P`;
       const response = await this.makeAuthenticatedRequest(url);
       const rows = response.values || [];
       
@@ -391,22 +370,6 @@ class GoogleSheetsOAuthService {
          }
        });
 
-      console.log('🔍 Debug - n8n Structure Analysis:');
-      console.log(`📊 Total data rows: ${dataRows.length}`);
-      console.log(`📹 Video metadata rows: ${videoMetadataRows.length}`);
-      console.log(`🎬 Clip rows: ${clipRows.length}`);
-      
-      // Debug video metadata
-      console.log('📹 Video metadata rows:');
-      videoMetadataRows.forEach((video, index) => {
-        console.log(`  Video ${index + 1} (Row ${video.rowIndex}):`, {
-          VideoId: video.VideoId || 'No ID',
-          status: `"${video.status}"`,
-          hasVideoLink: !!video.videoLink,
-          linkPreview: video.videoLink ? video.videoLink.substring(0, 50) + '...' : 'No link'
-        });
-      });
-      
       // Status analysis based on video metadata rows only
       const total = videoMetadataRows.length;
       
@@ -420,15 +383,6 @@ class GoogleSheetsOAuthService {
 
       const processing = total - completed - failed;
 
-      console.log('📈 Status counts:', { total, processing, completed, failed });
-      
-      // Debug: Show which videos are in each status
-      console.log('📊 Status breakdown:');
-      console.log('  ✅ Analysis complete:', videoMetadataRows.filter(v => v.status === 'Analysis complete').map(v => v.VideoId || 'No ID'));
-      console.log('  ⏳ Processing:', videoMetadataRows.filter(v => v.status === 'Processing').map(v => v.VideoId || 'No ID'));
-      console.log('  🔄 Analysing:', videoMetadataRows.filter(v => v.status === 'Analysing').map(v => v.VideoId || 'No ID'));
-      console.log('  ❌ Failed:', videoMetadataRows.filter(v => v.status && v.status.includes('Failed')).map(v => v.VideoId || 'No ID'));
-      
       return { total, processing, completed, failed };
     } catch (error) {
       console.error('Error getting processing status:', error);
@@ -571,7 +525,6 @@ class GoogleSheetsOAuthService {
         })
       });
 
-      console.log('New spreadsheet created:', spreadsheetId);
       return spreadsheetId;
     } catch (error) {
       console.error('Error creating spreadsheet:', error);
