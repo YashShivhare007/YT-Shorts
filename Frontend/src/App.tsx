@@ -24,6 +24,9 @@ function App() {
   const [lockModalOpen, setLockModalOpen] = useState(false);
   const [lockEmail, setLockEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('pw-shorts-dark-mode') === 'true';
+  });
 
   // Auth state check
   useEffect(() => {
@@ -153,6 +156,15 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+    localStorage.setItem('pw-shorts-dark-mode', darkMode.toString());
+  }, [darkMode]);
+
   if (lockModalOpen) {
     return (
       <div style={{
@@ -185,7 +197,7 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300`}>
         {/* Pass handleGlobalSignOut to GoogleSignIn via Navbar */}
         <Navbar handleSignOut={handleGlobalSignOut} />
         <main className="container mx-auto px-4 py-8">
@@ -197,6 +209,18 @@ function App() {
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>
+        {/* Dark mode toggle button (bottom right) */}
+        <button
+          onClick={() => setDarkMode((d) => !d)}
+          className="fixed bottom-6 right-6 z-50 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow-lg rounded-full p-3 flex items-center justify-center transition-colors duration-200 focus:outline-none"
+          aria-label="Toggle dark mode"
+        >
+          {darkMode ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m8.66-8.66l-.71.71M4.05 19.07l-.71-.71M21 12h-1M4 12H3m16.95 7.07l-.71-.71M6.34 6.34l-.71-.71" /></svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" /></svg>
+          )}
+        </button>
       </div>
     </Router>
   );
