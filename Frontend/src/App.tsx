@@ -27,7 +27,7 @@ function App() {
   // Auth state check
   useEffect(() => {
     const checkAuth = async () => {
-      await googleAuthService.initialize();
+      await googleAuthService.restoreSessionIfPossible();
       const signedIn = googleAuthService.isSignedIn();
       setIsSignedIn(signedIn);
       if (signedIn) {
@@ -104,10 +104,9 @@ function App() {
       const currentUser = googleAuthService.getCurrentUser();
       const lockValue = await googleSheetsOAuthService.getLockValue();
       const executionId = await googleSheetsOAuthService.getExecutionId();
-      if (executionId) {
-        const backendResp = await googleSheetsOAuthService.testTerminateExecution(executionId);
-        console.log('[App] Backend terminate response:', backendResp);
-      }
+      // Always call backend terminate endpoint, even if no executionId
+      const backendResp = await googleSheetsOAuthService.testTerminateExecution(executionId || 'none');
+      console.log('[App] Backend terminate response:', backendResp);
       if (currentUser && lockValue === currentUser.email) {
         await googleSheetsOAuthService.setLockValue('');
         await googleSheetsOAuthService.clearAllRowsExceptHeader();

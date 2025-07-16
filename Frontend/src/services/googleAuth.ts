@@ -227,9 +227,79 @@ class GoogleAuthService {
     }
   }
 
-  // Check if user is signed in
+  // Restore session if possible (call on app load)
+  async restoreSessionIfPossible(): Promise<void> {
+    await this.initialize();
+    // Try to restore from gapi if available
+    if (window.gapi?.auth2) {
+      const auth2 = window.gapi.auth2.getAuthInstance?.();
+      if (auth2 && auth2.isSignedIn.get()) {
+        const googleUser = auth2.currentUser.get();
+        const profile = googleUser.getBasicProfile();
+        const authResponse = googleUser.getAuthResponse();
+        this.accessToken = authResponse.access_token;
+        this.currentUser = {
+          id: profile.getId(),
+          email: profile.getEmail(),
+          name: profile.getName(),
+          picture: profile.getImageUrl(),
+        };
+        console.log('[GoogleAuth] Restored session from gapi.auth2:', this.currentUser);
+        this.signInChangeCallbacks.forEach(cb => cb(true));
+        return;
+      } else {
+        console.log('[GoogleAuth] No gapi.auth2 session found.');
+      }
+    }
+    // Try to restore from Google Identity Services (GIS) silently
+    if (this.tokenClient) {
+      let silentRestored = false;
+      try {
+        await new Promise<void>((resolve, reject) => {
+          this.tokenClient.callback = async (tokenResponse: any) => {
+            if (tokenResponse && tokenResponse.access_token) {
+              this.accessToken = tokenResponse.access_token;
+              await this.handleTokenResponse(tokenResponse);
+              console.log('[GoogleAuth] Restored session from GIS silent token:', this.currentUser);
+              this.signInChangeCallbacks.forEach(cb => cb(true));
+              silentRestored = true;
+              resolve();
+            } else {
+              console.log('[GoogleAuth] GIS silent token request did not return access_token.');
+              resolve();
+            }
+          };
+          // Silent request: prompt: '', auto_select: true
+          this.tokenClient.requestAccessToken({ prompt: '', auto_select: true });
+        });
+      } catch (err) {
+        console.error('[GoogleAuth] Error during GIS silent token request:', err);
+      }
+      if (silentRestored) return;
+    } else {
+      console.log('[GoogleAuth] No GIS tokenClient available for silent restore.');
+    }
+    // No session found
+    this.accessToken = null;
+    this.currentUser = null;
+    this.signInChangeCallbacks.forEach(cb => cb(false));
+    console.log('[GoogleAuth] No session found in gapi or GIS. User is signed out.');
+    // Note: Google session is NOT stored in localStorage. All session is managed by Google cookies/tokens.
+    // You can check localStorage in DevTools > Application > Local Storage, but Google does not use it for auth.
+  }
+
+  // Update isSignedIn to check for Google session if not in memory
   isSignedIn(): boolean {
-    return this.accessToken !== null && this.currentUser !== null;
+    if (this.accessToken && this.currentUser) return true;
+    // Try to check gapi.auth2 session
+    if (window.gapi?.auth2) {
+      const auth2 = window.gapi.auth2.getAuthInstance?.();
+      if (auth2 && auth2.isSignedIn.get()) {
+        return true;
+      }
+    }
+    // GIS: no direct session check, so fallback to false
+    return false;
   }
 
   // Get current user
