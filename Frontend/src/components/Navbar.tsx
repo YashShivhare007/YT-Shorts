@@ -14,7 +14,11 @@ import { useState } from 'react';
 import GoogleSignIn from './GoogleSignIn';
 import pwLogo from '../256px-Physics_wallah_logo.svg.png';
 
-const Navbar = () => {
+interface NavbarProps {
+  handleSignOut: () => void;
+}
+
+const Navbar = ({ handleSignOut }: NavbarProps) => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -59,7 +63,7 @@ const Navbar = () => {
                 );
               })}
             </div>
-            <GoogleSignIn />
+            <GoogleSignIn handleSignOut={handleSignOut} />
           </div>
 
           {/* Mobile menu button */}

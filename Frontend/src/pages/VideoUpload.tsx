@@ -128,6 +128,12 @@ const VideoUpload = () => {
       }
       await googleSheetsOAuthService.clearAllRowsExceptHeader();
       await googleSheetsOAuthService.clearSheet2();
+      // Set the lock value to the current user's email
+      const currentUser = googleAuthService.getCurrentUser();
+      if (currentUser?.email) {
+        await googleSheetsOAuthService.setLockValue(currentUser.email);
+        console.log('[VideoUpload] Lock set to:', currentUser.email);
+      }
       await doUpload(pendingUploadUrls);
     } catch (err) {
       setUploadStatus('error');

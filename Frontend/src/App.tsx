@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import GoogleSignIn from './components/GoogleSignIn';
 import Dashboard from './pages/Dashboard';
 import VideoUpload from './pages/VideoUpload';
 import ClipReview from './pages/ClipReview';
@@ -104,9 +105,9 @@ function App() {
       const currentUser = googleAuthService.getCurrentUser();
       const lockValue = await googleSheetsOAuthService.getLockValue();
       const executionId = await googleSheetsOAuthService.getExecutionId();
-      // Always call backend terminate endpoint, even if no executionId
+      console.log('[SignOut] About to call backend terminate endpoint with executionId:', executionId || 'none');
       const backendResp = await googleSheetsOAuthService.testTerminateExecution(executionId || 'none');
-      console.log('[App] Backend terminate response:', backendResp);
+      console.log('[SignOut] Backend terminate response:', backendResp);
       if (currentUser && lockValue === currentUser.email) {
         await googleSheetsOAuthService.setLockValue('');
         await googleSheetsOAuthService.clearAllRowsExceptHeader();
@@ -121,7 +122,7 @@ function App() {
       setLockEmail(null);
       console.log('[App] User signed out globally');
     } catch (err) {
-      console.error('[App] Error during global sign out:', err);
+      console.error('[SignOut] Error during global sign out:', err);
     } finally {
       setLoading(false);
     }
@@ -185,7 +186,8 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        {/* Pass handleGlobalSignOut to GoogleSignIn via Navbar */}
+        <Navbar handleSignOut={handleGlobalSignOut} />
         <main className="container mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<Dashboard />} />

@@ -13,10 +13,11 @@ interface GoogleUser {
 }
 
 export interface GoogleSignInProps {
-  onSignInChange?: (isSignedIn: boolean, user?: GoogleUser) => void;
+  onSignInChange?: (signedIn: boolean, user?: GoogleUser) => void;
+  handleSignOut: () => void;
 }
 
-const GoogleSignIn = ({ onSignInChange }: GoogleSignInProps) => {
+const GoogleSignIn = ({ onSignInChange, handleSignOut }: GoogleSignInProps) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [user, setUser] = useState<GoogleUser | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,31 +107,6 @@ const GoogleSignIn = ({ onSignInChange }: GoogleSignInProps) => {
       setIsSignedIn(false);
       setUser(null);
       onSignInChange?.(false, undefined);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Enhanced sign-out: Only clear if current user owns the lock
-  const handleSignOut = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const signedInUser = googleAuthService.getCurrentUser();
-      const lockValue = await googleSheetsOAuthService.getLockValue();
-      if (signedInUser && lockValue === signedInUser.email) {
-        await googleSheetsOAuthService.setLockValue(''); // Clear lock
-        await googleSheetsOAuthService.clearAllRowsExceptHeader(); // Clear sheet
-      }
-      await googleAuthService.signOut();
-      setUser(null);
-      setIsSignedIn(false);
-      onSignInChange?.(false, undefined);
-      setLockModalOpen(false);
-      setLockEmail(null);
-    } catch (err) {
-      console.error('Sign out failed:', err);
-      setError('Failed to sign out. Please try again.');
     } finally {
       setLoading(false);
     }
