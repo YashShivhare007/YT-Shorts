@@ -45,6 +45,9 @@ except Exception as e:
     logging.error(f"Import traceback: {traceback.format_exc()}")
     # Don't set processor to None here - let the app start and handle it in routes
 
+TERMINATED_IDS_FILE = Path("temp_videos/terminated_executions.txt")
+TERMINATED_IDS_FILE.parent.mkdir(exist_ok=True)
+
 def send_progress_update(VideoId, task_type, status, message, result=None):
     """Send progress update to the status tracking system for a specific task."""
     if VideoId not in processing_status:
@@ -671,9 +674,29 @@ def debug_payload():
 def terminate_execution():
     data = request.get_json()
     execution_id = data.get('execution_id')
-    # For now, just log and return a test response
-    logging.info(f"[terminate-execution] Received execution_id: {execution_id}")
-    return 'ola amigo', 200
+    if not execution_id:
+        return jsonify({'error': 'Missing execution_id'}), 400
+    # Append the execution_id to the file (one per line, avoid duplicates)
+    with open(TERMINATED_IDS_FILE, 'a+') as f:
+        f.seek(0)
+        ids = set(line.strip() for line in f if line.strip())
+        if execution_id not in ids:
+            f.write(execution_id + '\n')
+    logging.info(f"[terminate-execution] Appended execution_id: {execution_id}")
+    return 'ok', 200
+
+@app.route('/should-stop/<execution_id>', methods=['GET'])
+def should_stop(execution_id):
+    if not execution_id:
+        return jsonify({'error': 'Missing execution_id'}), 400
+    if not TERMINATED_IDS_FILE.exists():
+        return jsonify({'action': 'proceed'})
+    with open(TERMINATED_IDS_FILE, 'r') as f:
+        ids = set(line.strip() for line in f if line.strip())
+    if execution_id in ids:
+        return jsonify({'action': 'stop'})
+    else:
+        return jsonify({'action': 'proceed'})
 
 if __name__ == '__main__':
     # Get port from environment variable (Render sets this)
