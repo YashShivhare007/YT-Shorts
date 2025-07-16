@@ -10,6 +10,8 @@ const VideoUpload = () => {
   const [uploadMessage, setUploadMessage] = useState('');
   const [validatedUrls, setValidatedUrls] = useState<Array<{ url: string; type: string; isValid: boolean }>>([]);
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [showUploadWarning, setShowUploadWarning] = useState(false);
+  const [pendingUploadUrls, setPendingUploadUrls] = useState<string[]>([]);
 
   // Check authentication status and listen for changes
   useEffect(() => {
@@ -78,22 +80,67 @@ const VideoUpload = () => {
       return;
     }
 
-    setUploadStatus('uploading');
-    setUploadMessage(`Uploading ${validUrls.length} video${validUrls.length > 1 ? 's' : ''}...`);
-
+    // Check if Sheet1 has data
     try {
-      await googleSheetsOAuthService.appendVideoLinks(validUrls.map(url => url.trim()));
-      
+      const existingVideos = await googleSheetsOAuthService.getAllVideos();
+      if (existingVideos.length > 0) {
+        setPendingUploadUrls(validUrls.map(url => url.trim()));
+        setShowUploadWarning(true);
+        return;
+      }
+    } catch (err) {
+      console.error('Error checking existing videos:', err);
+      setUploadMessage('Failed to check existing videos. Please try again.');
+      setUploadStatus('error');
+      return;
+    }
+    // If empty, proceed as normal
+    await doUpload(validUrls.map(url => url.trim()));
+  };
+
+  // Upload logic separated for reuse
+  const doUpload = async (urls: string[]) => {
+    setUploadStatus('uploading');
+    setUploadMessage(`Uploading ${urls.length} video${urls.length > 1 ? 's' : ''}...`);
+    try {
+      await googleSheetsOAuthService.appendVideoLinks(urls);
       setUploadStatus('success');
-      setUploadMessage(`Successfully uploaded ${validUrls.length} video${validUrls.length > 1 ? 's' : ''} to Google Sheets and triggered n8n workflow! Check the Dashboard to monitor processing status.`);
+      setUploadMessage(`Successfully uploaded ${urls.length} video${urls.length > 1 ? 's' : ''} to Google Sheets and triggered n8n workflow! Check the Dashboard to monitor processing status.`);
       setVideoUrls('');
       setValidatedUrls([]);
-      
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus('error');
       setUploadMessage('Failed to upload videos. Please check your Google Sheets access or try signing in again.');
     }
+  };
+
+  // Handler for Proceed in modal
+  const handleProceedUpload = async () => {
+    setShowUploadWarning(false);
+    setUploadStatus('uploading');
+    setUploadMessage('Clearing previous videos...');
+    try {
+      const executionId = await googleSheetsOAuthService.getExecutionId();
+      if (executionId) {
+        const backendResp = await googleSheetsOAuthService.testTerminateExecution(executionId);
+        console.log('[VideoUpload] Backend terminate response:', backendResp);
+      }
+      await googleSheetsOAuthService.clearAllRowsExceptHeader();
+      await googleSheetsOAuthService.clearSheet2();
+      await doUpload(pendingUploadUrls);
+    } catch (err) {
+      setUploadStatus('error');
+      setUploadMessage('Failed to clear previous videos. Please try again.');
+    } finally {
+      setPendingUploadUrls([]);
+    }
+  };
+
+  // Handler for Wait/Cancel in modal
+  const handleWaitUpload = () => {
+    setShowUploadWarning(false);
+    setPendingUploadUrls([]);
   };
 
   const clearUrls = () => {
@@ -135,6 +182,35 @@ const VideoUpload = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Upload warning modal */}
+      {showUploadWarning && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.5)',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 320, textAlign: 'center', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+            <h2 style={{ marginBottom: 16 }}>Replace Existing Videos?</h2>
+            <p style={{ marginBottom: 24 }}>
+              Uploading new videos will <b>remove all current videos and clips from the dashboard</b>.<br />
+              Please save any clips you want before proceeding.
+            </p>
+            <button onClick={handleWaitUpload} disabled={uploadStatus === 'uploading'} style={{ marginRight: 16, padding: '8px 24px', borderRadius: 4, background: '#6b7280', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
+              Wait / Cancel
+            </button>
+            <button onClick={handleProceedUpload} disabled={uploadStatus === 'uploading'} style={{ padding: '8px 24px', borderRadius: 4, background: '#2563eb', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
+              Proceed / Continue
+            </button>
+          </div>
+        </div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

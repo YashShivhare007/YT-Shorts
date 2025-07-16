@@ -46,7 +46,7 @@ except Exception as e:
 def send_progress_update(VideoId, task_type, status, message, result=None):
     """Send progress update to the status tracking system for a specific task."""
     if VideoId not in processing_status:
-    processing_status[VideoId] = {
+        processing_status[VideoId] = {
             'transcript': {'status': 'pending', 'message': 'Awaiting task'},
             'clips': {'status': 'pending', 'message': 'Awaiting task'}
         }
@@ -664,6 +664,14 @@ def debug_payload():
             'raw_data': str(request.data),
             'content_type': request.content_type
         })
+
+@app.route('/terminate-execution', methods=['POST'])
+def terminate_execution():
+    data = request.get_json()
+    execution_id = data.get('execution_id')
+    # For now, just log and return a test response
+    logging.info(f"[terminate-execution] Received execution_id: {execution_id}")
+    return 'ola amigo', 200
 
 if __name__ == '__main__':
     # Get port from environment variable (Render sets this)

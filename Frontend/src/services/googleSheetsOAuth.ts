@@ -137,39 +137,70 @@ class GoogleSheetsOAuthService {
     }
   }
 
-  // Trigger n8n workflow via webhook
+  // Set the execution ID in Sheet2!B2
+  async setExecutionId(value: string): Promise<void> {
+    await this.initialize();
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet2!B2?valueInputOption=RAW`;
+    const body = { values: [[value]] };
+    await this.makeAuthenticatedRequest(url, { method: 'PUT', body: JSON.stringify(body) });
+  }
+
+  // Get the execution ID from Sheet2!B2
+  async getExecutionId(): Promise<string> {
+    await this.initialize();
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet2!B2`;
+    const response = await this.makeAuthenticatedRequest(url);
+    const values = response.values || [];
+    return values[0]?.[0] || '';
+  }
+
+  // Stop n8n execution by executionId
+  async stopN8nExecution(): Promise<void> {
+    const executionId = await this.getExecutionId();
+    if (!executionId) return;
+    // Replace with your n8n API base URL and API key
+    const n8nApiUrl = 'https://your-n8n-instance.com/rest/executions/' + executionId + '/stop';
+    const apiKey = 'YOUR_N8N_API_KEY';
+    await fetch(n8nApiUrl, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}` }
+    });
+  }
+
+  // Clear lock and executionId in Sheet2 (A2:B2)
+  async clearSheet2(): Promise<void> {
+    await this.initialize();
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet2!A2:B2:clear`;
+    await this.makeAuthenticatedRequest(url, { method: 'POST' });
+  }
+
+  // Update triggerN8nWorkflow to store executionId
   private async triggerN8nWorkflow(urls: string[]): Promise<void> {
     try {
-      // Get webhook URL from config
-      // const n8nWebhookUrl = config.n8n.webhookUrl; // Commented out: use hardcoded URL for now
       const n8nWebhookUrl = 'https://primary-production-0ec4.up.railway.app/webhook/trigger-video-processing';
-      
-      // Simple trigger payload - the workflow will use Google Sheets node to read actual data
       const payload = {
         action: 'process_videos',
         message: `Processing ${urls.length} new video(s)`,
         timestamp: new Date().toISOString(),
         videoCount: urls.length
       };
-
       const response = await fetch(n8nWebhookUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
       if (response.ok) {
-        const responseText = await response.text();
+        const data = await response.json();
+        const executionId = data.executionId || data.id;
+        if (executionId) {
+          await this.setExecutionId(executionId);
+        }
       } else {
         const errorText = await response.text();
         console.warn('Failed to trigger n8n workflow:', response.status, response.statusText, errorText);
-        // Don't throw error here - the upload to sheets was successful
       }
     } catch (error) {
       console.warn('Error triggering n8n workflow:', error);
-      // Don't throw error here - the upload to sheets was successful
     }
   }
 
@@ -530,6 +561,41 @@ class GoogleSheetsOAuthService {
       console.error('Error creating spreadsheet:', error);
       throw new Error('Failed to create new spreadsheet');
     }
+  }
+
+  // Get the lock value from Sheet2!A2
+  async getLockValue(): Promise<string> {
+    await this.initialize();
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet2!A2`;
+    const response = await this.makeAuthenticatedRequest(url);
+    const values = response.values || [];
+    return values[0]?.[0] || '';
+  }
+
+  // Set the lock value in Sheet2!A2
+  async setLockValue(value: string): Promise<void> {
+    await this.initialize();
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Sheet2!A2?valueInputOption=RAW`;
+    const body = { values: [[value]] };
+    await this.makeAuthenticatedRequest(url, { method: 'PUT', body: JSON.stringify(body) });
+  }
+
+  // Clear all rows except the header (A2:Q) using the Sheets API 'clear' endpoint
+  async clearAllRowsExceptHeader(): Promise<void> {
+    await this.initialize();
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A2:Q:clear`;
+    await this.makeAuthenticatedRequest(url, { method: 'POST' });
+  }
+
+  // Test backend terminate-execution endpoint
+  async testTerminateExecution(executionId: string): Promise<string> {
+    const url = 'https://yt-shorts-production-0c9a.up.railway.app/terminate-execution';
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ execution_id: executionId }),
+    });
+    return response.text();
   }
 }
 
