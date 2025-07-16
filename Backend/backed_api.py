@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import subprocess
 import os
+from flask_cors import CORS
 
 # Load environment variables from .env file
 load_dotenv()
@@ -15,6 +16,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
+CORS(app, origins=["https://yt-shorts-1.vercel.app", "http://localhost:5173"])
 
 # Production configuration
 app.config['JSON_SORT_KEYS'] = False
