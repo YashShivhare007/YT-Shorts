@@ -47,6 +47,16 @@ except Exception as e:
 
 TERMINATED_IDS_FILE = Path("temp_videos/terminated_executions.txt")
 TERMINATED_IDS_FILE.parent.mkdir(exist_ok=True)
+TERMINATE_ALL_FLAG = Path("temp_videos/terminate_all.flag")
+
+# Helper to check for terminate all flag
+def should_terminate_all():
+    return TERMINATE_ALL_FLAG.exists()
+
+# Helper to clear terminate all flag
+def clear_terminate_all():
+    if TERMINATE_ALL_FLAG.exists():
+        TERMINATE_ALL_FLAG.unlink()
 
 def send_progress_update(VideoId, task_type, status, message, result=None):
     """Send progress update to the status tracking system for a specific task."""
@@ -135,9 +145,12 @@ def ensure_ytdlp_updated():
         return True, f"yt-dlp is current (version: {current_version})"
 
 def process_youtube_background(youtube_url, VideoId, clips):
-    """Background processing for YouTube videos"""
+    clear_terminate_all()  # Clear flag at job start
     task_type = 'clips'
     try:
+        if should_terminate_all():
+            logging.warning(f"[process_youtube_background] Terminated by global flag before start.")
+            return
         # Check if processor is available
         if processor is None:
             send_progress_update(VideoId, task_type, 'failed', 'Backend processor not available')
@@ -147,6 +160,9 @@ def process_youtube_background(youtube_url, VideoId, clips):
         # Check and upgrade yt-dlp if needed
         send_progress_update(VideoId, task_type, 'checking', '🔍 Checking yt-dlp version...')
         upgrade_success, upgrade_message = ensure_ytdlp_updated()
+        if should_terminate_all():
+            logging.warning(f"[process_youtube_background] Terminated by global flag after yt-dlp check.")
+            return
         
         if upgrade_success:
             send_progress_update(VideoId, task_type, 'ready', f'✅ {upgrade_message}')
@@ -160,6 +176,9 @@ def process_youtube_background(youtube_url, VideoId, clips):
         try:
             send_progress_update(VideoId, task_type, 'downloading', 'Downloading video from YouTube...')
             video_path = processor.download_video(youtube_url, VideoId)
+            if should_terminate_all():
+                logging.warning(f"[process_youtube_background] Terminated by global flag after download.")
+                return
             send_progress_update(VideoId, task_type, 'downloading', 'Video download completed')
         except Exception as e:
             send_progress_update(VideoId, task_type, 'failed', f'Download failed: {str(e)}')
@@ -168,10 +187,16 @@ def process_youtube_background(youtube_url, VideoId, clips):
         # Setup Google Drive
         send_progress_update(VideoId, task_type, 'setting_up', 'Setting up Google Drive...')
         processor.setup_google_drive()
+        if should_terminate_all():
+            logging.warning(f"[process_youtube_background] Terminated by global flag after drive setup.")
+            return
         
         # Process clips
         results = []
         for i, clip in enumerate(clips):
+            if should_terminate_all():
+                logging.warning(f"[process_youtube_background] Terminated by global flag during clip loop.")
+                return
             try:
                 send_progress_update(VideoId, task_type, 'processing', f'Processing clip {i+1}/{len(clips)}...')
                 
@@ -236,9 +261,12 @@ def process_youtube_background(youtube_url, VideoId, clips):
         logging.error(f"Processing failed for {VideoId}: {e}")
 
 def process_drive_clips_background(drive_url, VideoId, clips):
-    """Background processing for Drive videos"""
+    clear_terminate_all()
     task_type = 'clips'
     try:
+        if should_terminate_all():
+            logging.warning(f"[process_drive_clips_background] Terminated by global flag before start.")
+            return
         # Check if processor is available
         if processor is None:
             send_progress_update(VideoId, task_type, 'failed', 'Backend processor not available')
@@ -255,15 +283,27 @@ def process_drive_clips_background(drive_url, VideoId, clips):
         else:
             send_progress_update(VideoId, task_type, 'downloading', '📥 Video not found locally. Starting download from Drive...')
             processor.setup_google_drive()
+            if should_terminate_all():
+                logging.warning(f"[process_drive_clips_background] Terminated by global flag after drive setup.")
+                return
             video_path = processor.download_from_drive_fixed(drive_url, video_filename)
+            if should_terminate_all():
+                logging.warning(f"[process_drive_clips_background] Terminated by global flag after download.")
+                return
         
         # Setup Google Drive for uploads
         send_progress_update(VideoId, task_type, 'setting_up', 'Setting up Google Drive for uploads...')
         processor.setup_google_drive()
+        if should_terminate_all():
+            logging.warning(f"[process_drive_clips_background] Terminated by global flag after drive setup 2.")
+            return
         
         # Process clips
         results = []
         for i, clip in enumerate(clips):
+            if should_terminate_all():
+                logging.warning(f"[process_drive_clips_background] Terminated by global flag during clip loop.")
+                return
             try:
                 send_progress_update(VideoId, task_type, 'processing', f'Processing clip {i+1}/{len(clips)}...')
                 
@@ -328,9 +368,12 @@ def process_drive_clips_background(drive_url, VideoId, clips):
         logging.error(f"Processing failed for {VideoId}: {e}")
 
 def generate_transcript_background(drive_url, VideoId):
-    """Background job for generating transcript from a Drive video"""
+    clear_terminate_all()
     task_type = 'transcript'
     try:
+        if should_terminate_all():
+            logging.warning(f"[generate_transcript_background] Terminated by global flag before start.")
+            return
         if processor is None:
             send_progress_update(VideoId, task_type, 'failed', 'Backend processor not available')
             logging.error("Backend processor not available for transcript generation")
@@ -340,6 +383,9 @@ def generate_transcript_background(drive_url, VideoId):
         
         # This is the correct, existing method that handles download, audio extraction, and transcription.
         result = processor.generate_transcript_from_drive(drive_url, VideoId)
+        if should_terminate_all():
+            logging.warning(f"[generate_transcript_background] Terminated by global flag after transcript.")
+            return
         
         # Check the result from the processor
         if result.get('status') == 'completed':
@@ -364,9 +410,12 @@ def generate_transcript_background(drive_url, VideoId):
 
 
 def process_drive_clips_background_new(drive_url, VideoId, input_data):
-    """Background processing for Drive clips with new input format"""
+    clear_terminate_all()
     task_type = 'clips'
     try:
+        if should_terminate_all():
+            logging.warning(f"[process_drive_clips_background_new] Terminated by global flag before start.")
+            return
         # Check if processor is available
         if processor is None:
             send_progress_update(VideoId, task_type, 'failed', 'Backend processor not available')
@@ -376,6 +425,9 @@ def process_drive_clips_background_new(drive_url, VideoId, input_data):
         send_progress_update(VideoId, task_type, 'starting', 'Starting Drive clips processing with new format...')
         
         result = processor.process_video_drive_clips(drive_url, VideoId, input_data=input_data)
+        if should_terminate_all():
+            logging.warning(f"[process_drive_clips_background_new] Terminated by global flag after processing.")
+            return
         
         processing_status[VideoId] = {
             'status': 'completed',
@@ -387,7 +439,7 @@ def process_drive_clips_background_new(drive_url, VideoId, input_data):
     except Exception as e:
         send_progress_update(VideoId, task_type, 'failed', f'Processing failed: {str(e)}')
         processing_status[VideoId]['error'] = str(e)
-        logging.error(f"Processing failed for {VideoId}: {e}")
+        logging.error(f"[process_drive_clips_background_new] Exception: {e}")
 
 @app.route('/process-youtube', methods=['POST'])
 def process_youtube():
@@ -682,7 +734,9 @@ def terminate_execution():
         ids = set(line.strip() for line in f if line.strip())
         if execution_id not in ids:
             f.write(execution_id + '\n')
-    logging.info(f"[terminate-execution] Appended execution_id: {execution_id}")
+    # Set the terminate all flag
+    TERMINATE_ALL_FLAG.touch()
+    logging.info(f"[terminate-execution] Appended execution_id: {execution_id} and set terminate_all.flag")
     return 'ok', 200
 
 @app.route('/should-stop/<execution_id>', methods=['GET'])
