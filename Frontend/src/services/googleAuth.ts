@@ -24,6 +24,12 @@ class GoogleAuthService {
   private accessToken: string | null = null;
   private currentUser: GoogleUser | null = null;
   private signInChangeCallbacks: ((isSignedIn: boolean) => void)[] = [];
+  
+  // Session monitoring
+  private sessionCheckInterval: NodeJS.Timeout | null = null;
+  private lastActivityTime: number = Date.now();
+  private readonly SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+  private readonly ACTIVITY_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
   // Initialize Google API
   async initialize(): Promise<void> {
@@ -154,6 +160,9 @@ class GoogleAuthService {
 
       console.log('User signed in:', this.currentUser);
       
+      // Start session monitoring
+      this.startSessionMonitoring();
+      
       // Notify all callbacks about sign-in state change
       this.signInChangeCallbacks.forEach(callback => callback(true));
     } catch (error) {
@@ -220,6 +229,9 @@ class GoogleAuthService {
       
       console.log('User signed out');
       
+      // Stop session monitoring
+      this.stopSessionMonitoring();
+      
       // Notify all callbacks about sign-out
       this.signInChangeCallbacks.forEach(callback => callback(false));
     } catch (error) {
@@ -246,6 +258,7 @@ class GoogleAuthService {
           picture: profile.getImageUrl(),
         };
         console.log('[GoogleAuth] Restored session from gapi.auth2:', this.currentUser);
+        this.startSessionMonitoring();
         this.signInChangeCallbacks.forEach(cb => cb(true));
         return;
       } else {
@@ -262,6 +275,7 @@ class GoogleAuthService {
               this.accessToken = tokenResponse.access_token;
               await this.handleTokenResponse(tokenResponse);
               console.log('[GoogleAuth] Restored session from GIS silent token:', this.currentUser);
+              this.startSessionMonitoring();
               this.signInChangeCallbacks.forEach(cb => cb(true));
               silentRestored = true;
               resolve();
@@ -376,6 +390,204 @@ class GoogleAuthService {
       console.error('❌ [GoogleAuth] Error re-authenticating with Drive:', error);
       throw error;
     }
+  }
+
+  // Start session monitoring
+  startSessionMonitoring(): void {
+    console.log('🔍 [GoogleAuth] Starting session monitoring...');
+    
+    // Clear any existing interval
+    if (this.sessionCheckInterval) {
+      clearInterval(this.sessionCheckInterval);
+    }
+    
+    // Set up activity tracking
+    this.setupActivityTracking();
+    
+    // Start periodic session checks
+    this.sessionCheckInterval = setInterval(() => {
+      this.checkSessionValidity();
+    }, this.ACTIVITY_CHECK_INTERVAL);
+    
+    console.log('✅ [GoogleAuth] Session monitoring started');
+  }
+
+  // Stop session monitoring
+  stopSessionMonitoring(): void {
+    console.log('🛑 [GoogleAuth] Stopping session monitoring...');
+    
+    if (this.sessionCheckInterval) {
+      clearInterval(this.sessionCheckInterval);
+      this.sessionCheckInterval = null;
+    }
+    
+    // Remove activity listeners
+    this.removeActivityTracking();
+    
+    console.log('✅ [GoogleAuth] Session monitoring stopped');
+  }
+
+  // Setup activity tracking
+  private setupActivityTracking(): void {
+    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    const updateActivity = () => {
+      this.lastActivityTime = Date.now();
+      console.log('📱 [GoogleAuth] User activity detected, session extended');
+    };
+    
+    activityEvents.forEach(event => {
+      document.addEventListener(event, updateActivity, true);
+    });
+    
+    // Store the update function for cleanup
+    (this as any)._updateActivity = updateActivity;
+  }
+
+  // Remove activity tracking
+  private removeActivityTracking(): void {
+    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    if ((this as any)._updateActivity) {
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, (this as any)._updateActivity, true);
+      });
+      delete (this as any)._updateActivity;
+    }
+  }
+
+  // Check if session is still valid
+  private async checkSessionValidity(): Promise<void> {
+    const timeSinceLastActivity = Date.now() - this.lastActivityTime;
+    
+    console.log(`⏰ [GoogleAuth] Session check - Time since last activity: ${Math.round(timeSinceLastActivity / 1000)}s`);
+    
+    // Check for inactivity timeout
+    if (timeSinceLastActivity > this.SESSION_TIMEOUT) {
+      console.log('⏰ [GoogleAuth] Session timeout reached, auto-signing out...');
+      await this.autoSignOut('Session expired due to inactivity');
+      return;
+    }
+    
+    // Check if Google token is still valid
+    if (this.accessToken) {
+      try {
+        const response = await fetch('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=' + this.accessToken);
+        
+        if (!response.ok) {
+          console.log('❌ [GoogleAuth] Google token invalid, auto-signing out...');
+          await this.autoSignOut('Google session expired');
+          return;
+        }
+        
+        console.log('✅ [GoogleAuth] Session is valid');
+      } catch (error) {
+        console.error('❌ [GoogleAuth] Error checking token validity:', error);
+        await this.autoSignOut('Error validating session');
+      }
+    }
+  }
+
+  // Auto sign out with reason
+  private async autoSignOut(reason: string): Promise<void> {
+    console.log(`🚪 [GoogleAuth] Auto sign-out: ${reason}`);
+    
+    try {
+      // Stop session monitoring
+      this.stopSessionMonitoring();
+      
+      // Clear session data
+      this.accessToken = null;
+      this.currentUser = null;
+      
+      // Clear gapi client token
+      if (window.gapi?.client) {
+        window.gapi.client.setToken(null);
+      }
+      
+      // Notify callbacks about sign-out
+      this.signInChangeCallbacks.forEach(callback => callback(false));
+      
+      // Show notification to user
+      this.showAutoSignOutNotification(reason);
+      
+      console.log('✅ [GoogleAuth] Auto sign-out completed');
+    } catch (error) {
+      console.error('❌ [GoogleAuth] Error during auto sign-out:', error);
+    }
+  }
+
+  // Show auto sign-out notification
+  private showAutoSignOutNotification(reason: string): void {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #ef4444;
+      color: white;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      max-width: 300px;
+      animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">Session Expired</div>
+          <div style="font-size: 12px; opacity: 0.9;">${reason}</div>
+        </div>
+      </div>
+    `;
+    
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 5000);
+  }
+
+  // Update activity time (can be called manually)
+  updateActivity(): void {
+    this.lastActivityTime = Date.now();
+  }
+
+  // Get session status
+  getSessionStatus(): {
+    isActive: boolean;
+    timeSinceLastActivity: number;
+    sessionTimeout: number;
+    isSignedIn: boolean;
+  } {
+    return {
+      isActive: this.isSignedIn(),
+      timeSinceLastActivity: Date.now() - this.lastActivityTime,
+      sessionTimeout: this.SESSION_TIMEOUT,
+      isSignedIn: this.isSignedIn()
+    };
   }
 
   // Listen for sign-in state changes

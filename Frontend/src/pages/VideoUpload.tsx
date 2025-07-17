@@ -14,6 +14,7 @@ const VideoUpload = () => {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [showUploadWarning, setShowUploadWarning] = useState(false);
   const [pendingUploadUrls, setPendingUploadUrls] = useState<string[]>([]);
+  const [proceedLoading, setProceedLoading] = useState(false);
   
   // New state for file uploads
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -93,7 +94,16 @@ const VideoUpload = () => {
     // Check if Sheet1 has data
     try {
       const existingVideos = await googleSheetsOAuthService.getAllVideos();
+      const currentUser = googleAuthService.getCurrentUser();
+      
       if (existingVideos.length > 0) {
+        // Admin can bypass the warning
+        if (isAdmin(currentUser?.email || null)) {
+          console.log('[VideoUpload] Admin bypassing upload warning');
+          await doUpload(validUrls.map(url => url.trim()));
+          return;
+        }
+        
         setPendingUploadUrls(validUrls.map(url => url.trim()));
         setShowUploadWarning(true);
         return;
@@ -125,8 +135,14 @@ const VideoUpload = () => {
     }
   };
 
+  // Admin check function
+  const isAdmin = (email: string | null): boolean => {
+    return email === 'yash.shivhare@pw.live';
+  };
+
   // Handler for Proceed in modal (updated to handle both URLs and Drive links)
   const handleProceedUpload = async () => {
+    setProceedLoading(true);
     setShowUploadWarning(false);
     setUploadStatus('uploading');
     setUploadMessage('Clearing previous videos...');
@@ -150,6 +166,7 @@ const VideoUpload = () => {
       setUploadMessage('Failed to clear previous videos. Please try again.');
     } finally {
       setPendingUploadUrls([]);
+      setProceedLoading(false);
     }
   };
 
@@ -359,11 +376,11 @@ const VideoUpload = () => {
               Uploading new videos will <b>remove all current videos and clips from the dashboard</b>.<br />
               Please save any clips you want before proceeding.
             </p>
-            <button onClick={handleWaitUpload} disabled={uploadStatus === 'uploading'} style={{ marginRight: 16, padding: '8px 24px', borderRadius: 4, background: '#6b7280', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
+            <button onClick={handleWaitUpload} disabled={proceedLoading} style={{ marginRight: 16, padding: '8px 24px', borderRadius: 4, background: '#6b7280', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
               Wait / Cancel
             </button>
-            <button onClick={handleProceedUpload} disabled={uploadStatus === 'uploading'} style={{ padding: '8px 24px', borderRadius: 4, background: '#2563eb', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
-              Proceed / Continue
+            <button onClick={handleProceedUpload} disabled={proceedLoading} style={{ padding: '8px 24px', borderRadius: 4, background: '#2563eb', color: '#fff', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
+              {proceedLoading ? 'Processing...' : 'Proceed / Continue'}
             </button>
           </div>
         </div>
