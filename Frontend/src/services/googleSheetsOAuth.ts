@@ -589,7 +589,7 @@ class GoogleSheetsOAuthService {
 
   // Test backend terminate-execution endpoint
   async testTerminateExecution(executionId: string): Promise<string> {
-    const url = 'https://yt-shorts-production-0c9a.up.railway.app/terminate-execution';
+    const url = `${config.backend.baseUrl}/terminate-execution`;
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

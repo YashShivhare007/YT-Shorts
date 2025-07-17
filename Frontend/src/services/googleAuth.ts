@@ -4,7 +4,8 @@ import { config } from '../config/environment';
 const GOOGLE_CLIENT_ID = config.google.clientId;
 const SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets', // Read/write spreadsheets
-  'https://www.googleapis.com/auth/drive.file',    // Access drive files we create
+  'https://www.googleapis.com/auth/drive',        // Full access to Drive (for shared drive uploads)
+  'https://www.googleapis.com/auth/drive.file',   // Access drive files we create
   'https://www.googleapis.com/auth/userinfo.email', // Access user email
   'https://www.googleapis.com/auth/userinfo.profile' // Access user profile
 ];
@@ -307,9 +308,74 @@ class GoogleAuthService {
     return this.currentUser;
   }
 
-  // Get access token for API calls
+  // Get access token
   getAccessToken(): string | null {
     return this.accessToken;
+  }
+
+  // Check if user has Drive permissions
+  async checkDrivePermissions(): Promise<boolean> {
+    console.log('🔐 [GoogleAuth] Checking Drive permissions...');
+    
+    try {
+      const accessToken = this.getAccessToken();
+      if (!accessToken) {
+        console.log('❌ [GoogleAuth] No access token available for Drive permission check');
+        return false;
+      }
+      console.log('✅ [GoogleAuth] Access token available for Drive permission check');
+
+      // Test Drive API access
+      console.log('🌐 [GoogleAuth] Testing Drive API access...');
+      const response = await fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      console.log('📡 [GoogleAuth] Drive API test response:', response.status, response.statusText);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ [GoogleAuth] Drive permissions confirmed:', data);
+        return true;
+      } else {
+        const errorText = await response.text();
+        console.error('❌ [GoogleAuth] Drive API test failed:', response.status, errorText);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ [GoogleAuth] Error checking Drive permissions:', error);
+      return false;
+    }
+  }
+
+  // Force re-authentication with Drive permissions
+  async reAuthenticateWithDrive(): Promise<void> {
+    console.log('🔄 [GoogleAuth] Starting re-authentication with Drive permissions...');
+    
+    try {
+      // Clear current token
+      console.log('🗑️ [GoogleAuth] Clearing current access token...');
+      this.accessToken = null;
+      
+      // Request new token with explicit consent
+      console.log('🔑 [GoogleAuth] Requesting new token with explicit consent...');
+      await this.signIn();
+      
+      // Verify Drive access
+      console.log('🔍 [GoogleAuth] Verifying Drive access after re-authentication...');
+      const hasDriveAccess = await this.checkDrivePermissions();
+      if (!hasDriveAccess) {
+        console.error('❌ [GoogleAuth] Drive permissions still not granted after re-authentication');
+        throw new Error('Drive permissions not granted. Please sign in again and grant Drive access.');
+      }
+      
+      console.log('✅ [GoogleAuth] Re-authentication successful with Drive permissions');
+    } catch (error) {
+      console.error('❌ [GoogleAuth] Error re-authenticating with Drive:', error);
+      throw error;
+    }
   }
 
   // Listen for sign-in state changes
