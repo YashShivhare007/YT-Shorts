@@ -493,12 +493,12 @@ class GoogleSheetsOAuthService {
 
   // Validate YouTube and Google Drive URLs
   validateUrl(url: string): { isValid: boolean; type: 'youtube' | 'drive' | 'invalid' } {
-    const youtubeRegex = /(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    // const youtubeRegex = /(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const driveRegex = /(?:drive\.google\.com\/(?:file\/d\/|uc\?id=|open\?id=))([a-zA-Z0-9_-]{28,})/;
-    
-    if (youtubeRegex.test(url)) {
-      return { isValid: true, type: 'youtube' };
-    } else if (driveRegex.test(url)) {
+    // if (youtubeRegex.test(url)) {
+    //   return { isValid: true, type: 'youtube' };
+    // } else 
+    if (driveRegex.test(url)) {
       return { isValid: true, type: 'drive' };
     } else {
       return { isValid: false, type: 'invalid' };

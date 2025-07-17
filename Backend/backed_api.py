@@ -752,6 +752,22 @@ def should_stop(execution_id):
     else:
         return jsonify({'action': 'proceed'})
 
+@app.route('/upload-raw-videos', methods=['POST'])
+def upload_raw_videos():
+    """Accept multiple video files and return their names and sizes (in bytes)"""
+    if 'videos' not in request.files:
+        return jsonify({'status': 'error', 'error': 'No videos part in the request'}), 400
+    files = request.files.getlist('videos')
+    if not files or len(files) == 0:
+        return jsonify({'status': 'error', 'error': 'No video files uploaded'}), 400
+    result = []
+    for file in files:
+        file.seek(0, 2)  # Seek to end
+        size = file.tell()
+        file.seek(0)     # Reset pointer
+        result.append({'filename': file.filename, 'size_bytes': size})
+    return jsonify({'status': 'success', 'videos': result}), 200
+
 if __name__ == '__main__':
     # Get port from environment variable (Render sets this)
     port = int(os.environ.get('PORT', 5000))

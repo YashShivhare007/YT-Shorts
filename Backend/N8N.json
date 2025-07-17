@@ -7,10 +7,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        180,
-        800
+        840,
+        -140
       ],
-      "id": "f80cc691-28cb-4be4-82a5-21947ce94fdb",
+      "id": "ef1c9fa2-366c-42e6-bd3e-bd07570e2db3",
       "name": "Parse Transcript"
     },
     {
@@ -23,10 +23,10 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        580,
-        880
+        1120,
+        -60
       ],
-      "id": "852a14f7-8598-4199-a0cd-8e2ccfd49aa1",
+      "id": "65975fb7-1a83-4d59-9c03-8f650149dfeb",
       "name": "Store in MongoDB",
       "credentials": {
         "mongoDb": {
@@ -42,10 +42,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.2,
       "position": [
-        -160,
-        20
+        -60,
+        -940
       ],
-      "id": "434bdb10-f3f8-4192-9f95-7bfdb5c473bc",
+      "id": "f9b471c2-f888-4613-8304-4e7e52016e18",
       "name": "Structured Output Parser"
     },
     {
@@ -58,10 +58,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        -300,
-        140
+        -200,
+        -820
       ],
-      "id": "8d76662d-3b4e-4a10-a2eb-dd04aa6f9eab",
+      "id": "a7fdecc1-2c6b-4965-bc76-e2691c8846a5",
       "name": "Trend Analyser"
     },
     {
@@ -69,10 +69,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        0,
-        140
+        700,
+        -820
       ],
-      "id": "3fca800d-8662-4e69-958a-a4a1893e495e",
+      "id": "bf110b87-91fb-4e1c-acee-eb8aaff84351",
       "name": "Merge"
     },
     {
@@ -82,10 +82,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -160,
-        360
+        -60,
+        -600
       ],
-      "id": "81412bb1-61d1-4df1-9e5e-8aad40716ad8",
+      "id": "f8006aae-25a6-4e92-a955-83b771392406",
       "name": "start,end,text"
     },
     {
@@ -95,10 +95,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -300,
-        360
+        -200,
+        -600
       ],
-      "id": "19c2502a-f179-41b1-80b2-1b647c9ddc2d",
+      "id": "ee7b47eb-bf50-45c6-8b70-4bc81033ea40",
       "name": "preprocessing transcript"
     },
     {
@@ -108,10 +108,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        160,
-        140
+        840,
+        -820
       ],
-      "id": "4234d350-69ee-4001-ba4b-7d8c466300d7",
+      "id": "8d2eed69-5548-4374-a96e-d769d71bb10c",
       "name": "Code"
     },
     {
@@ -119,10 +119,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        20,
-        360
+        700,
+        -600
       ],
-      "id": "18ee723d-8c15-4d49-be46-576997b9e0b3",
+      "id": "f84f0af7-9703-4ec0-9bb2-498aced7367e",
       "name": "Raw plus clipped"
     },
     {
@@ -132,10 +132,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        160,
-        360
+        840,
+        -600
       ],
-      "id": "28b61339-b98a-46f5-97f1-99b8451ee11b",
+      "id": "63e4167b-e532-48ee-bcf2-c5b50ab238b7",
       "name": "Expand Context"
     },
     {
@@ -145,10 +145,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -300,
-        620
+        -200,
+        -340
       ],
-      "id": "aab0bb13-86f5-4ac3-8a78-201b93b272a3",
+      "id": "b99e87cf-f51a-445a-a73e-35ca528ae1f1",
       "name": "Extracting Link Id",
       "alwaysOutputData": true
     },
@@ -157,10 +157,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        160,
-        620
+        700,
+        -340
       ],
-      "id": "3d9e3844-9227-4093-ac1f-45b4bc9c4d81",
+      "id": "188409c0-c209-4285-92b6-9effde8f8c1e",
       "name": "Final Output with VideoId"
     },
     {
@@ -170,10 +170,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        580,
-        620
+        980,
+        -340
       ],
-      "id": "c2a1da52-d9a3-475c-a799-f023382fbf85",
+      "id": "3d30d17b-e8f3-4c83-a518-8b19eba6f343",
       "name": "Setting up Payload"
     },
     {
@@ -181,10 +181,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -920,
-        1180
+        -820,
+        260
       ],
-      "id": "92aa967d-048e-4fb3-93f1-7132d75dc17d",
+      "id": "93b2e1ba-f682-49d4-a775-25222bb590ce",
       "name": "Merge1"
     },
     {
@@ -216,10 +216,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        280,
-        1160
+        840,
+        240
       ],
-      "id": "8ae00fee-8019-44ba-805f-3fd76f2bf306",
+      "id": "b9b4ea52-4214-4c0d-9a62-32d5da15a722",
       "name": "Is Completed?"
     },
     {
@@ -229,10 +229,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        300,
-        360
+        980,
+        -600
       ],
-      "id": "317815d9-d403-41ff-a48d-bf1af82d7784",
+      "id": "b715ebf6-fa49-408c-a238-6340ee2a01b3",
       "name": "Prepare Initial Clip Rows"
     },
     {
@@ -242,14 +242,15 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        300,
-        620
+        840,
+        -340
       ],
-      "id": "3a70c411-7b8f-4b3a-9b5d-52352a179e5b",
+      "id": "c7003122-7932-4935-bd9f-7f7f4e302b43",
       "name": "Prepare Polished Data"
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "append",
         "documentId": {
           "__rl": true,
@@ -268,10 +269,11 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Category": "={{ $json.Category }}",
-            "Reason": "={{ $json.Reason }}",
-            "Confidence": "={{ $json.Confidence }}",
-            "Clip ID": "={{ $json[\"Clip ID\"] }}"
+            "Category": "={{ $('Prepare Initial Clip Rows').item.json.Category }}",
+            "Reason": "={{ $('Prepare Initial Clip Rows').item.json.Reason }}",
+            "Confidence": "={{ $('Prepare Initial Clip Rows').item.json.Confidence }}",
+            "Video Link": "=",
+            "Clip ID": "={{ $('Prepare Initial Clip Rows').item.json['Clip ID'] }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -401,6 +403,26 @@
               "display": true,
               "type": "string",
               "canBeUsedToMatch": true
+            },
+            {
+              "id": "Start Time",
+              "displayName": "Start Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "End Time",
+              "displayName": "End Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -411,20 +433,21 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        540,
-        360
+        1440,
+        -620
       ],
-      "id": "722d1c7f-418e-4c1a-af46-bad014303649",
+      "id": "07ebbb89-4c20-4b29-8118-72fa95024505",
       "name": "Append Initial Clip Rows",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "update",
         "documentId": {
           "__rl": true,
@@ -443,11 +466,11 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Clip ID": "={{ $json[\"Clip ID\"] }}",
-            "Start": "={{ $json.Start }}",
-            "End": "={{ $json.End }}",
-            "Text ": "={{ $json.Text }}",
-            "Editor Justification": "={{ $json[\"Editor Justification\"] }}"
+            "Clip ID": "={{ $('Prepare Polished Data').item.json['Clip ID'] }}",
+            "Start": "={{ $('Prepare Polished Data').item.json.Start }}",
+            "End": "={{ $('Prepare Polished Data').item.json.End }}",
+            "Text ": "={{ $('Prepare Polished Data').item.json.Text }}",
+            "Editor Justification": "={{ $('Prepare Polished Data').item.json['Editor Justification'] }}"
           },
           "matchingColumns": [
             "Clip ID"
@@ -601,15 +624,15 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        440,
-        620
+        1440,
+        -340
       ],
-      "id": "8a5502d0-837c-420c-93cc-431212daf99f",
+      "id": "368fc894-5cc5-4895-ba91-af21e4b69130",
       "name": "Update with Polished Data",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
@@ -620,10 +643,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        420,
-        1100
+        980,
+        180
       ],
-      "id": "3c0012a6-79c2-4e4c-a190-73adb42a9680",
+      "id": "dec0518a-ce2d-4b6a-a1ef-a18b7bd94535",
       "name": "Prepare Final Drive Links"
     },
     {
@@ -633,10 +656,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -800,
-        1180
+        -700,
+        260
       ],
-      "id": "e691d663-5dee-41c5-aa93-986cfbb4626d",
+      "id": "5412b30f-55a0-462d-a1bf-8cda968f0e63",
       "name": "Single JSON2"
     },
     {
@@ -647,10 +670,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -800,
-        140
+        -700,
+        -820
       ],
-      "id": "2ee7c12e-257c-4bd8-8c0d-c3c73f23672b",
+      "id": "79308c8f-5b18-4f1f-b1ec-b63a8371a9eb",
       "name": "Extract ID"
     },
     {
@@ -660,10 +683,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        -680,
-        140
+        -580,
+        -820
       ],
-      "id": "9abed088-c93c-47cd-8443-516d191a6338",
+      "id": "bf0df645-11a9-4865-b65a-aeb800446338",
       "name": "Wait",
       "webhookId": "f678025a-d71b-4690-b577-6c81d69ab8ee"
     },
@@ -701,10 +724,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        960
+        -60,
+        40
       ],
-      "id": "62c53727-f405-4ade-8621-1fc1f74f6b1f",
+      "id": "7860a9e2-9e2e-4e1b-81f5-5178f8ef6d40",
       "name": "Get Transcript(GDrive)"
     },
     {
@@ -736,10 +759,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        260,
-        960
+        840,
+        40
       ],
-      "id": "34784a80-b839-468c-9f87-a89a6e74508f",
+      "id": "80dd3fa3-6fdb-442d-bd74-7629fa360551",
       "name": "Is Completed?1"
     },
     {
@@ -767,10 +790,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        800
+        -60,
+        -140
       ],
-      "id": "2996ea2c-5c6f-4791-b3a7-d7e8ace9ca64",
+      "id": "e50161dc-0154-49ee-b45c-bdfec81c45e8",
       "name": "Get Transcript (YT)"
     },
     {
@@ -780,10 +803,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        -20,
-        500
+        80,
+        -460
       ],
-      "id": "cd04aa54-f075-4498-bc8d-3aa63d3328f6",
+      "id": "28c8018a-be7d-4619-95d8-5fe13c1eb668",
       "name": "Structured Output Parser4"
     },
     {
@@ -791,10 +814,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -680,
-        1180
+        -580,
+        260
       ],
-      "id": "c4d8a4f4-51e1-4e35-9e7b-dc7582c23b46",
+      "id": "8229c3ad-5d4e-4c4f-8892-45113747850c",
       "name": "Merge2"
     },
     {
@@ -804,10 +827,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -560,
-        1180
+        -460,
+        260
       ],
-      "id": "46b56f96-9e77-41d3-aa0d-5c11bd5a1346",
+      "id": "efe970aa-8974-4db1-a9b3-4574ee13946e",
       "name": "Code2"
     },
     {
@@ -817,10 +840,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -920,
-        140
+        -820,
+        -820
       ],
-      "id": "5abc3530-3a77-4624-911c-14754118ba0c",
+      "id": "b6c5b960-8055-475e-825d-30c31b89ed89",
       "name": "Loop Over Items"
     },
     {
@@ -861,10 +884,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        1100
+        -60,
+        180
       ],
-      "id": "846009c6-1542-430f-861b-f0108439dc0a",
+      "id": "58a66a19-3d2f-42a2-9091-0165f421e9c3",
       "name": "Start Processing(YT))"
     },
     {
@@ -905,10 +928,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        -160,
-        1240
+        -60,
+        320
       ],
-      "id": "d809d023-53df-47a0-a575-65c3b5f3f0a6",
+      "id": "4fb42d15-f13d-4c5a-9ff0-f769f9c9ee9a",
       "name": "Start Processing(GDrive)"
     },
     {
@@ -919,10 +942,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
       "typeVersion": 1,
       "position": [
-        -300,
-        20
+        -200,
+        -940
       ],
-      "id": "4c89de6f-3b82-4f23-b748-ec9a0016d7e3",
+      "id": "530fa244-9037-48fc-8392-5d15e8820ac2",
       "name": "Agent-1",
       "credentials": {
         "azureOpenAiApi": {
@@ -939,10 +962,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
       "typeVersion": 1,
       "position": [
-        320,
-        20
+        1020,
+        -940
       ],
-      "id": "082f6592-0c8d-4b7a-9bf3-abb54e7d1acf",
+      "id": "3883b9d6-5e21-4f03-b6fb-9c6e929c8bba",
       "name": "Agent-2",
       "credentials": {
         "azureOpenAiApi": {
@@ -959,10 +982,10 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
       "typeVersion": 1,
       "position": [
-        -140,
-        500
+        -40,
+        -460
       ],
-      "id": "1f3576f7-1cc1-4cb7-a2ac-51ab1c445ba0",
+      "id": "28ad154c-2c10-4dd6-b579-8398469d417c",
       "name": "Agent-3",
       "credentials": {
         "azureOpenAiApi": {
@@ -981,10 +1004,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        -160,
-        620
+        -60,
+        -340
       ],
-      "id": "d25166f5-5325-4626-acd5-db287ca9f55d",
+      "id": "67dc0c0d-3d0d-48dd-8063-5975a584b584",
       "name": "Polished Timestamps"
     },
     {
@@ -997,10 +1020,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 2,
       "position": [
-        300,
-        140
+        980,
+        -820
       ],
-      "id": "d89b12cf-7cf2-4650-8ab3-a2a083ce093d",
+      "id": "0aaee909-9371-458f-882a-2c05c9954bc6",
       "name": "Timestamps"
     },
     {
@@ -1030,10 +1053,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -300,
-        880
+        -200,
+        -60
       ],
-      "id": "f0bd8d17-ac66-4925-92c5-0002f95f51a8",
+      "id": "05301341-d2ab-420f-b0ab-c87c2fa0b71f",
       "name": "If YT-1"
     },
     {
@@ -1064,10 +1087,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -300,
-        1180
+        -200,
+        260
       ],
-      "id": "47cc89f9-73e9-4470-b5d5-81187b14db53",
+      "id": "639811e5-73d4-4141-b668-ecceb4c2811e",
       "name": "If YT-2",
       "alwaysOutputData": false
     },
@@ -1078,10 +1101,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        420,
-        960
+        980,
+        40
       ],
-      "id": "8084e589-6f87-48c3-9815-8bd99e81898d",
+      "id": "f441ca81-8ca1-49fe-b5f1-9492fdc49ce2",
       "name": "DB Payload-2"
     },
     {
@@ -1091,14 +1114,15 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        420,
-        800
+        980,
+        -140
       ],
-      "id": "dd6eda8e-1606-4871-ab11-f2036944eb40",
+      "id": "d909a6af-dc82-42f7-9050-b54358a04a8f",
       "name": "DB Payload-1"
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "update",
         "documentId": {
           "__rl": true,
@@ -1272,15 +1296,15 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        580,
-        1100
+        1120,
+        180
       ],
-      "id": "b0b9c759-30c2-4f76-a625-61fff48aa14c",
+      "id": "a3062f0a-8e06-498e-916c-8fd95470b3fe",
       "name": "Drive Links",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
@@ -1293,15 +1317,16 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        -1200,
-        60
+        -1100,
+        -900
       ],
-      "id": "cd38143a-b322-44cf-b67b-140c30968d48",
+      "id": "11001c82-91ff-44f6-aed1-b172a162819f",
       "name": "Webhook",
       "webhookId": "196513a7-6d40-441e-a316-dffcd34c3e85"
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "documentId": {
           "__rl": true,
           "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
@@ -1321,15 +1346,15 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -1080,
-        140
+        -980,
+        -820
       ],
-      "id": "7f9eb06f-87e8-4e39-9956-2846bb6347ef",
+      "id": "4d6c6dc0-4d24-4b93-bef8-590f92741cb5",
       "name": "Get row(s) in sheet",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
@@ -1340,45 +1365,12 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        580,
-        1240
+        1120,
+        320
       ],
-      "id": "42fcc2bc-7f4a-4a6e-be06-1ffa99ce85b4",
+      "id": "59a3a24d-4167-4836-8b55-0b94db669289",
       "name": "Wait1",
       "webhookId": "c6f4e249-172b-4bf0-9607-3be0315dc315"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "10ef75df-978d-4ab2-859d-61b3df8809a4",
-              "leftValue": "={{ $json.resultCount }}",
-              "rightValue": 1,
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        -560,
-        520
-      ],
-      "id": "579b2f5d-aa78-4550-b9a7-a191f606dd5a",
-      "name": "If"
     },
     {
       "parameters": {
@@ -1389,10 +1381,10 @@
       "type": "n8n-nodes-base.mongoDb",
       "typeVersion": 1.2,
       "position": [
-        -920,
-        520
+        -820,
+        -440
       ],
-      "id": "c27bf407-2022-4f75-b311-b06c42add07f",
+      "id": "f1d6be13-7cd1-44cd-bfc0-fb47925566a4",
       "name": "Data Exists?",
       "alwaysOutputData": true,
       "credentials": {
@@ -1409,10 +1401,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -680,
-        520
+        -580,
+        -440
       ],
-      "id": "159e3d2c-d40a-4e3a-bf23-4ac3ff1f9761",
+      "id": "20550afd-aa23-4fb8-ad20-02f5293fea57",
       "name": "Has Data?"
     },
     {
@@ -1420,10 +1412,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -800,
-        520
+        -700,
+        -440
       ],
-      "id": "c01302c8-a094-4fc6-83d0-d1e2981c4cb7",
+      "id": "00bb2a8b-9b29-4035-9626-eb56d41a4382",
       "name": "Merge3"
     },
     {
@@ -1433,10 +1425,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        440,
-        20
+        1140,
+        -940
       ],
-      "id": "ec9a9767-575d-409c-8cc5-0775b56f8ae6",
+      "id": "b7ad1d17-aaaf-40ce-be4c-5f2eda986ca7",
       "name": "Structured Output Parser2"
     },
     {
@@ -1446,10 +1438,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        580,
-        140
+        1260,
+        -820
       ],
-      "id": "041b77c8-eeb0-4930-912b-d18ba862be70",
+      "id": "22ac5b32-35bd-4434-ab4d-27f4859a7a56",
       "name": "1st Screening"
     },
     {
@@ -1457,10 +1449,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -1200,
-        200
+        -1100,
+        -760
       ],
-      "id": "b36a96b8-ab92-4b78-9ada-054f4fe8e592",
+      "id": "a7d81ef5-09ad-4bbe-831d-2ef351433fbd",
       "name": "When clicking ‘Execute workflow’"
     },
     {
@@ -1482,10 +1474,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        120,
-        960
+        700,
+        40
       ],
-      "id": "7792f9f3-1a0a-4e06-a3e0-829caf76fdaf",
+      "id": "443233c0-ae94-4eae-b06c-988d6dc73dac",
       "name": "Transcript Status",
       "alwaysOutputData": true,
       "retryOnFail": true
@@ -1509,16 +1501,17 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        120,
-        1160
+        700,
+        240
       ],
-      "id": "5b3a9d21-3a84-42e2-9d2f-cf11322b0ac1",
+      "id": "8b88282c-1ed5-421b-a07e-bf8621a1e7c7",
       "name": "Clips Status",
       "alwaysOutputData": true,
       "retryOnFail": true
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "update",
         "documentId": {
           "__rl": true,
@@ -1691,20 +1684,21 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        540,
-        480
+        1440,
+        -480
       ],
-      "id": "817b74f6-aae6-4903-a07f-e9f0c4ca18a4",
+      "id": "2aa7020d-8cec-4d10-b4e6-f28b96fa3c5f",
       "name": "Polishing Timestamps",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "update",
         "documentId": {
           "__rl": true,
@@ -1913,20 +1907,21 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -560,
-        140
+        -460,
+        -820
       ],
-      "id": "5e3132a4-0682-4843-a15b-ca9fb1239b2e",
+      "id": "a49a1e0f-9213-4c72-ac63-1c81240c58a5",
       "name": "Analysing Trend",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "update",
         "documentId": {
           "__rl": true,
@@ -2099,20 +2094,21 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        0,
-        0
+        700,
+        -1120
       ],
-      "id": "0dd18a7b-0ee1-4a01-b950-c72b5ec43c47",
+      "id": "f96d8711-6564-4367-b959-ba0b0d8d0384",
       "name": "Generating Transcript",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "update",
         "documentId": {
           "__rl": true,
@@ -2131,7 +2127,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "VideoId": "={{ $json.VideoId }}",
+            "VideoId": "={{ $('start,end,text').item.json.VideoId }}",
             "Status": "Extracting Timestamps"
           },
           "matchingColumns": [
@@ -2286,20 +2282,21 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        160,
-        0
+        700,
+        -960
       ],
-      "id": "5ca86a9b-8b02-42e6-9001-a9ecf1ac2908",
+      "id": "cdd20cfc-38bc-4271-89b2-b51e59b1d426",
       "name": "Extracting Timestamps",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "update",
         "documentId": {
           "__rl": true,
@@ -2472,20 +2469,21 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        -300,
-        1040
+        -200,
+        120
       ],
-      "id": "82f2a80f-f13c-40c6-a870-809839861888",
+      "id": "ee73e9ba-6539-4af1-95af-e9ff60e2b9ac",
       "name": "Clipping Videos",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
     {
       "parameters": {
+        "authentication": "serviceAccount",
         "operation": "update",
         "documentId": {
           "__rl": true,
@@ -2680,15 +2678,15 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.6,
       "position": [
-        420,
-        1240
+        980,
+        320
       ],
-      "id": "bd55ac60-3ff8-4ca8-9b26-ec76b7193a7e",
+      "id": "caa705c6-a1ce-491a-85ba-1ffa885550ca",
       "name": "Analysis Complete",
       "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "yPyx4oxzg7hIkj6D",
-          "name": "Google Sheets account"
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
         }
       }
     },
@@ -2699,10 +2697,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        -20,
-        1160
+        80,
+        240
       ],
-      "id": "230c0ea5-af8c-4aef-b303-99532f0a9ca5",
+      "id": "f87ddfee-f11a-48ae-864a-4cdeca4b05c1",
       "name": "Wait 10 sec",
       "webhookId": "80a865ed-32c1-4012-b168-7119cc44182e"
     },
@@ -2713,12 +2711,443 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        -20,
-        960
+        80,
+        40
       ],
-      "id": "6117d215-771d-488b-938c-00f82137515c",
+      "id": "cecd5d83-017a-4ad5-a7b3-7609d383edcb",
       "name": "Wait 10 Seconds",
       "webhookId": "80a865ed-32c1-4012-b168-7119cc44182e"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs",
+          "mode": "list",
+          "cachedResultName": "Youtube Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 288956891,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/16QpFaWxYfBPDNephKhUDKlAw-t7PWW3s7cwec054BBs/edit#gid=288956891"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 2,
+            "Execution ID": "={{ $execution.id }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Lock",
+              "displayName": "Lock",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Execution ID",
+              "displayName": "Execution ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -820,
+        -940
+      ],
+      "id": "4856c99e-ed82-408e-91b2-4e0a4feec171",
+      "name": "Execution ID",
+      "credentials": {
+        "googleApi": {
+          "id": "73Ao5yxGSIbhuVnf",
+          "name": "Google Service Account account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Stopped Forcefully!"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        700,
+        -1280
+      ],
+      "id": "7f4e2986-550e-4c66-b725-c7d9d1f1d936",
+      "name": "Stop the Workflow"
+    },
+    {
+      "parameters": {
+        "url": "=https://yt-shorts-production-0c9a.up.railway.app/should-stop/{{ $execution.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        240
+      ],
+      "id": "c3abb062-583f-4747-83e2-0e3b0073643d",
+      "name": "Should stop?"
+    },
+    {
+      "parameters": {
+        "url": "=https://yt-shorts-production-0c9a.up.railway.app/should-stop/{{ $execution.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        -960
+      ],
+      "id": "82e00b0c-0a70-4a15-8d77-41050d46acfb",
+      "name": "Should stop?1"
+    },
+    {
+      "parameters": {
+        "url": "=https://yt-shorts-production-0c9a.up.railway.app/should-stop/{{ $execution.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        -1120
+      ],
+      "id": "c50815b7-7af1-499f-acfe-8b1e5b8f0cd7",
+      "name": "Should stop?2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "10ef75df-978d-4ab2-859d-61b3df8809a4",
+              "leftValue": "={{ $json.resultCount }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -460,
+        -440
+      ],
+      "id": "13d105ba-2ab0-4675-b336-4c3f9ba8958f",
+      "name": "Has Result?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b707fd60-2fba-4ba8-b8c7-481ee782ef62",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "proceed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        240
+      ],
+      "id": "85e52068-328a-4bab-8c1e-d6bd20bf9e3c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b707fd60-2fba-4ba8-b8c7-481ee782ef62",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "proceed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        -960
+      ],
+      "id": "a42ffdd0-0c75-4e8b-b0f3-ccdf13da92fd",
+      "name": "If1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b707fd60-2fba-4ba8-b8c7-481ee782ef62",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "proceed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        -1120
+      ],
+      "id": "8f8a51ae-7d64-41c2-9200-bbec94c6aa5b",
+      "name": "If2",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b707fd60-2fba-4ba8-b8c7-481ee782ef62",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "proceed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1260,
+        -600
+      ],
+      "id": "1420fbb3-ac4a-424d-ae32-a48cd1329f2c",
+      "name": "If3",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "=https://yt-shorts-production-0c9a.up.railway.app/should-stop/{{ $execution.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        -600
+      ],
+      "id": "6b8fd420-9e6d-4e82-886c-459e52460062",
+      "name": "Should stop?3"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Stopped Forcefully!"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        -760
+      ],
+      "id": "d8fc2fa4-4ab8-4b82-8a6a-e18e5ad67db6",
+      "name": "Stop the Workflow1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b707fd60-2fba-4ba8-b8c7-481ee782ef62",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "proceed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1260,
+        -340
+      ],
+      "id": "b2ea31b7-61bf-432b-99ec-6ca581975a5e",
+      "name": "If4",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "=https://yt-shorts-production-0c9a.up.railway.app/should-stop/{{ $execution.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        -340
+      ],
+      "id": "739fa3b4-b5f4-4c22-805f-dfe7ddfb329a",
+      "name": "Should stop?4"
+    },
+    {
+      "parameters": {
+        "url": "=https://yt-shorts-production-0c9a.up.railway.app/should-stop/{{ $execution.id }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        40
+      ],
+      "id": "eb41a556-757d-487a-8ffb-b04ec3a363b7",
+      "name": "Should stop?5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b707fd60-2fba-4ba8-b8c7-481ee782ef62",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "proceed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        40
+      ],
+      "id": "59061e23-9ee0-4dee-ba38-5179d55ec2ab",
+      "name": "If5"
     }
   ],
   "connections": {
@@ -2769,7 +3198,7 @@
             "index": 0
           },
           {
-            "node": "Generating Transcript",
+            "node": "Should stop?2",
             "type": "main",
             "index": 0
           }
@@ -2791,6 +3220,11 @@
       "main": [
         [
           {
+            "node": "Should stop?1",
+            "type": "main",
+            "index": 0
+          },
+          {
             "node": "Merge",
             "type": "main",
             "index": 1
@@ -2799,11 +3233,6 @@
             "node": "Raw plus clipped",
             "type": "main",
             "index": 1
-          },
-          {
-            "node": "Extracting Timestamps",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -2933,12 +3362,7 @@
       "main": [
         [
           {
-            "node": "Polishing Timestamps",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Append Initial Clip Rows",
+            "node": "Should stop?3",
             "type": "main",
             "index": 0
           }
@@ -2949,7 +3373,7 @@
       "main": [
         [
           {
-            "node": "Update with Polished Data",
+            "node": "Should stop?4",
             "type": "main",
             "index": 0
           }
@@ -3248,6 +3672,11 @@
             "node": "Loop Over Items",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Execution ID",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -3257,29 +3686,6 @@
         [
           {
             "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "Extracting Link Id",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "preprocessing transcript",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "If YT-1",
             "type": "main",
             "index": 0
           }
@@ -3301,7 +3707,7 @@
       "main": [
         [
           {
-            "node": "If",
+            "node": "Has Result?",
             "type": "main",
             "index": 0
           }
@@ -3415,7 +3821,7 @@
       "main": [
         [
           {
-            "node": "Clips Status",
+            "node": "Should stop?",
             "type": "main",
             "index": 0
           }
@@ -3426,7 +3832,209 @@
       "main": [
         [
           {
+            "node": "Should stop?5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should stop?": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should stop?1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should stop?2": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Result?": {
+      "main": [
+        [
+          {
+            "node": "Extracting Link Id",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "preprocessing transcript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If YT-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Clips Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop the Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Extracting Timestamps",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop the Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Generating Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop the Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Append Initial Clip Rows",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Polishing Timestamps",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop the Workflow1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should stop?3": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Update with Polished Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop the Workflow1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should stop?4": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should stop?5": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
             "node": "Transcript Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop the Workflow",
             "type": "main",
             "index": 0
           }
@@ -3434,50 +4042,7 @@
       ]
     }
   },
-  "pinData": {
-    "Webhook": [
-      {
-        "headers": {
-          "host": "primary-production-0ec4.up.railway.app",
-          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-          "content-length": "119",
-          "accept": "*/*",
-          "accept-encoding": "gzip, deflate, br, zstd",
-          "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-          "content-type": "application/json",
-          "origin": "https://yt-shorts-1.vercel.app",
-          "priority": "u=1, i",
-          "referer": "https://yt-shorts-1.vercel.app/",
-          "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\"",
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": "\"macOS\"",
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "cross-site",
-          "x-forwarded-for": "27.61.42.9",
-          "x-forwarded-host": "primary-production-0ec4.up.railway.app",
-          "x-forwarded-proto": "https",
-          "x-railway-edge": "railway/europe-west4-drams3a",
-          "x-railway-request-id": "H4Ux0exySIyvdzLJss7a6g",
-          "x-real-ip": "27.61.42.9",
-          "x-request-start": "1752578353507"
-        },
-        "params": {},
-        "query": {},
-        "body": {
-          "action": "process_videos",
-          "message": "Processing 5 new video(s)",
-          "timestamp": "2025-07-15T11:19:11.789Z",
-          "videoCount": 5
-        },
-        "webhookUrl": "https://primary-production-0ec4.up.railway.app/webhook/trigger-video-processing",
-        "executionMode": "production"
-      }
-    ],
-    "When clicking ‘Execute workflow’": [
-      {}
-    ]
-  },
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "ba6654f7567c6d5bef382b9c5ef983a1d6d72df8b941b686b49860a5d6ac07d2"
