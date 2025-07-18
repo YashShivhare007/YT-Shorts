@@ -8,13 +8,11 @@ import {
   Settings, 
   Zap,
   Menu,
-  X,
-  Shield
+  X
 } from 'lucide-react';
 import { useState } from 'react';
 import GoogleSignIn from './GoogleSignIn';
 import pwLogo from '../256px-Physics_wallah_logo.svg.png';
-import { googleAuthService } from '../services/googleAuth';
 
 interface NavbarProps {
   handleSignOut: () => void;
@@ -23,10 +21,6 @@ interface NavbarProps {
 const Navbar = ({ handleSignOut }: NavbarProps) => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Admin check
-  const currentUser = googleAuthService.getCurrentUser();
-  const isAdmin = currentUser?.email === 'yash.shivhare@pw.live';
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -69,15 +63,6 @@ const Navbar = ({ handleSignOut }: NavbarProps) => {
                 );
               })}
             </div>
-            
-            {/* Admin Badge */}
-            {isAdmin && (
-              <div className="flex items-center space-x-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
-                <Shield className="w-3 h-3" />
-                <span>ADMIN</span>
-              </div>
-            )}
-            
             <GoogleSignIn handleSignOut={handleSignOut} />
           </div>
 
@@ -99,16 +84,6 @@ const Navbar = ({ handleSignOut }: NavbarProps) => {
             className="md:hidden border-t border-gray-200 py-4"
           >
             <div className="flex flex-col space-y-1">
-              {/* Admin Badge Mobile */}
-              {isAdmin && (
-                <div className="flex items-center space-x-3 px-3 py-2 mb-2">
-                  <div className="flex items-center space-x-2 px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
-                    <Shield className="w-3 h-3" />
-                    <span>ADMIN MODE</span>
-                  </div>
-                </div>
-              )}
-              
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (

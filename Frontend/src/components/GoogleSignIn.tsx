@@ -90,41 +90,16 @@ const GoogleSignIn = ({ onSignInChange, handleSignOut }: GoogleSignInProps) => {
       setUser(signedInUser);
       setIsSignedIn(true);
       onSignInChange?.(true, signedInUser);
-      
-      // Check if user is admin
-      const isAdminUser = signedInUser.email === 'yash.shivhare@pw.live';
-      
       // Now check the lock
       const lockValue = await googleSheetsOAuthService.getLockValue();
-      
-      if (isAdminUser) {
-        // Admin logic
-        if (lockValue && lockValue !== signedInUser.email) {
-          // Someone else is using - admin can still use but lock stays with other user
-          console.log('[GoogleSignIn] Admin signed in while sheet is in use by:', lockValue);
-          setLockModalOpen(false);
-          setLockEmail(null);
-        } else {
-          // No one is using or admin owns lock - treat admin normally
-          await googleSheetsOAuthService.setLockValue(signedInUser.email);
-          console.log('[GoogleSignIn] Admin signed in and set lock to:', signedInUser.email);
-          setLockModalOpen(false);
-          setLockEmail(null);
-        }
+      if (lockValue && lockValue !== signedInUser.email) {
+        setLockEmail(lockValue);
+        setLockModalOpen(true);
       } else {
-        // Regular user logic
-        if (lockValue && lockValue !== signedInUser.email) {
-          // Sheet is in use by someone else
-          setLockEmail(lockValue);
-          setLockModalOpen(true);
-          console.log('[GoogleSignIn] Regular user cannot sign in - sheet in use by:', lockValue);
-        } else {
-          // Sheet is free or user owns lock
-          await googleSheetsOAuthService.setLockValue(signedInUser.email);
-          console.log('[GoogleSignIn] Regular user signed in and set lock to:', signedInUser.email);
-          setLockModalOpen(false);
-          setLockEmail(null);
-        }
+        // Always set/renew the lock for the current user
+        await googleSheetsOAuthService.setLockValue(signedInUser.email);
+        setLockModalOpen(false);
+        setLockEmail(null);
       }
     } catch (err) {
       console.error('Sign in failed:', err);
@@ -143,35 +118,16 @@ const GoogleSignIn = ({ onSignInChange, handleSignOut }: GoogleSignInProps) => {
     try {
       const signedInUser = googleAuthService.getCurrentUser();
       const lockValue = await googleSheetsOAuthService.getLockValue();
-      
-      if (!signedInUser) {
-        console.log('[GoogleSignIn] No signed in user found');
-        return;
-      }
-      
-      const isAdminUser = signedInUser.email === 'yash.shivhare@pw.live';
-      
-      if (isAdminUser) {
-        // Admin can always retry and get access
-        if (!lockValue) {
+      if (!lockValue || (signedInUser && lockValue === signedInUser.email)) {
+        // Lock is now free or owned by this user
+        if (!lockValue && signedInUser) {
           await googleSheetsOAuthService.setLockValue(signedInUser.email);
-          console.log('[GoogleSignIn] Admin acquired lock');
         }
         setLockModalOpen(false);
         setLockEmail(null);
       } else {
-        // Regular user logic
-        if (!lockValue || lockValue === signedInUser.email) {
-          // Lock is now free or owned by this user
-          if (!lockValue && signedInUser) {
-            await googleSheetsOAuthService.setLockValue(signedInUser.email);
-          }
-          setLockModalOpen(false);
-          setLockEmail(null);
-        } else {
-          setLockEmail(lockValue);
-          setLockModalOpen(true);
-        }
+        setLockEmail(lockValue);
+        setLockModalOpen(true);
       }
     } catch (err) {
       setError('Failed to check lock. Please try again.');
